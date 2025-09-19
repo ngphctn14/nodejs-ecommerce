@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
-import { Search, ShoppingCart, User, ChevronDown, Menu } from 'lucide-react';
+import React, { useState } from "react";
+import { Search, ShoppingCart, User, ChevronDown, Menu } from "lucide-react";
 
 const brands = [
-  { name: 'Nike', href: '/brands/nike' },
-  { name: 'Adidas', href: '/brands/adidas' },
-  { name: 'Puma', href: '/brands/puma' },
+  { name: "Nike", href: "/brands/nike" },
+  { name: "Adidas", href: "/brands/adidas" },
+  { name: "Puma", href: "/brands/puma" },
 ];
 
 const shoeTypes = [
-  { name: 'Sneakers', href: '/types/sneakers' },
-  { name: 'Boots', href: '/types/boots' },
-  { name: 'Sandals', href: '/types/sandals' },
+  { name: "Sneakers", href: "/types/sneakers" },
+  { name: "Boots", href: "/types/boots" },
+  { name: "Sandals", href: "/types/sandals" },
 ];
 
-const isLoggedIn = true;
+const isLoggedIn = false;
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -32,7 +32,10 @@ const Navbar = () => {
           </div>
 
           <div className="hidden lg:flex items-center space-x-6">
-            <a href="/products" className="text-gray-700 hover:text-gray-900 font-medium">
+            <a
+              href="/products"
+              className="text-gray-700 hover:text-gray-900 font-medium"
+            >
               Tất cả sản phẩm
             </a>
 
@@ -72,23 +75,31 @@ const Navbar = () => {
               </div>
             </div>
 
-            <a href="/advanced-search" className="text-gray-700 hover:text-gray-900 font-medium">
+            <a
+              href="/advanced-search"
+              className="text-gray-700 hover:text-gray-900 font-medium"
+            >
               Tìm kiếm nâng cao
             </a>
           </div>
 
-            <div className="absolute left-1/2 transform -translate-x-1/2">
-                <a href="/" className="flex items-center space-x-2">
-                <span className="text-xl font-bold text-gray-900">Shop bóng đá</span>
-                </a>
-            </div>
+          <div className="absolute left-1/2 transform -translate-x-1/2">
+            <a href="/" className="flex items-center space-x-2">
+              <span className="text-xl font-bold text-gray-900">
+                Shop bóng đá
+              </span>
+            </a>
+          </div>
 
           <div className="flex items-center space-x-6">
             <a href="/search" className="text-gray-700 hover:text-gray-900 p-2">
               <Search className="h-6 w-6" />
             </a>
 
-            <a href="/cart" className="text-gray-700 hover:text-gray-900 p-2 relative">
+            <a
+              href="/cart"
+              className="text-gray-700 hover:text-gray-900 p-2 relative"
+            >
               <ShoppingCart className="h-6 w-6" />
               <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                 0
@@ -96,27 +107,47 @@ const Navbar = () => {
             </a>
 
             {isLoggedIn ? (
-            <div className="relative group">
+              <div className="relative group">
                 <button className="flex items-center text-gray-700 hover:text-gray-900 p-2">
-                <User className="h-6 w-6" />
-                <ChevronDown className="ml-1 h-4 w-4 transition-transform group-hover:rotate-180" />
+                  <User className="h-6 w-6" />
+                  <ChevronDown className="ml-1 h-4 w-4 transition-transform group-hover:rotate-180" />
                 </button>
                 <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
-                <a href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <a
+                    href="/profile"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
                     Hồ sơ
-                </a>
-                <a href="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  </a>
+                  <a
+                    href="/orders"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
                     Đơn hàng
-                </a>
-                <a href="/logout" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  </a>
+                  <a
+                    href="/logout"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
                     Đăng xuất
-                </a>
+                  </a>
                 </div>
-            </div>
+              </div>
             ) : (
-            <a href="/login" className="text-gray-700 hover:text-gray-900 font-medium">
-                Đăng nhập/Đăng ký
-            </a>
+              <>
+                <a
+                  href="/login"
+                  className="text-gray-700 hover:text-gray-900 font-medium"
+                >
+                  Đăng nhập
+                </a>
+                <a
+                  href="/signup"
+                  className="text-gray-700 hover:text-gray-900 font-medium"
+                >
+                  Đăng ký
+                </a>
+              </>
             )}
           </div>
         </div>
@@ -124,7 +155,10 @@ const Navbar = () => {
         {isMobileMenuOpen && (
           <div className="lg:hidden border-t border-gray-200">
             <div className="px-2 pt-2 pb-3 space-y-1">
-              <a href="/products" className="block px-3 py-2 text-gray-700 hover:text-gray-900 font-medium">
+              <a
+                href="/products"
+                className="block px-3 py-2 text-gray-700 hover:text-gray-900 font-medium"
+              >
                 Tất cả sản phẩm
               </a>
               <div className="relative group">
@@ -155,11 +189,17 @@ const Navbar = () => {
                   </a>
                 ))}
               </div>
-              <a href="/advanced-search" className="block px-3 py-2 text-gray-700 hover:text-gray-900 font-medium">
+              <a
+                href="/advanced-search"
+                className="block px-3 py-2 text-gray-700 hover:text-gray-900 font-medium"
+              >
                 Tìm kiếm nâng cao
               </a>
               {!isLoggedIn && (
-                <a href="/login" className="block px-3 py-2 text-gray-700 hover:text-gray-900 font-medium">
+                <a
+                  href="/login"
+                  className="block px-3 py-2 text-gray-700 hover:text-gray-900 font-medium"
+                >
                   Đăng nhập/Đăng ký
                 </a>
               )}
