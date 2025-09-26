@@ -5,18 +5,29 @@ const brands = [
   { name: "Nike", href: "/brands/nike" },
   { name: "Adidas", href: "/brands/adidas" },
   { name: "Puma", href: "/brands/puma" },
+  { name: "Các hãng khác", href: "/brands/others" },
 ];
 
 const shoeTypes = [
-  { name: "Sneakers", href: "/types/sneakers" },
-  { name: "Boots", href: "/types/boots" },
-  { name: "Sandals", href: "/types/sandals" },
+  { name: "Giày sân cỏ tự nhiên", href: "/types/co-tu-nhien" },
+  { name: "Giày sân cỏ nhân tạo", href: "/types/co-nhan-tao" },
+  { name: "Giày sân futsal", href: "/types/futsal" },
+  { name: "Các sản phẩm khác", href: "/types/others" },
 ];
 
 const isLoggedIn = false;
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      window.location.href = `/search?name=${encodeURIComponent(searchQuery)}`;
+    }
+  };
 
   return (
     <nav className="bg-white shadow-lg fixed w-full z-50 top-0">
@@ -59,7 +70,7 @@ const Navbar = () => {
 
             <div className="relative group">
               <button className="flex items-center text-gray-700 hover:text-gray-900 font-medium">
-                Loại giày
+                Loại sản phẩm
                 <ChevronDown className="ml-1 h-4 w-4 transition-transform group-hover:rotate-180" />
               </button>
               <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
@@ -92,9 +103,27 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center space-x-6">
-            <a href="/search" className="text-gray-700 hover:text-gray-900 p-2">
-              <Search className="h-6 w-6" />
-            </a>
+            <div className="relative">
+              <button
+                onClick={() => setIsSearchOpen(!isSearchOpen)}
+                className="text-gray-700 hover:text-gray-900 p-2"
+              >
+                <Search className="h-6 w-6" />
+              </button>
+              {isSearchOpen && (
+                <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-md shadow-lg p-3 transition-all duration-200 z-10">
+                  <form onSubmit={handleSearchSubmit}>
+                    <input
+                      type="text"
+                      placeholder="Tìm kiếm sản phẩm..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full px-4 py-3 text-gray-700 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                    />
+                  </form>
+                </div>
+              )}
+            </div>
 
             <a
               href="/cart"
