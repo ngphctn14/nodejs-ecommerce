@@ -6,7 +6,6 @@ import image from '/giaybongda.jpg';
 const products = Array.from({ length: 16 }, (_, index) => ({
   id: index + 1,
   name: `Product ${index + 1}`,
-  price: 500000 + index * 100000,
   price: 500000,
   oldPrice: 700000 + index * 100000,
   salePercent: Math.floor(Math.random() * 30) + 10,
