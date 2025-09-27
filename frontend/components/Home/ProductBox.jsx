@@ -1,7 +1,12 @@
 import React from 'react';
 
 const ProductBox = ({ name, price, oldPrice, salePercent, imageUrl }) => {
-  const isOnSale = salePercent && salePercent > 0 && oldPrice && oldPrice > price;
+  const parsedSalePercent = Number(salePercent);
+  const isOnSale = parsedSalePercent > 0 && oldPrice && oldPrice > price;
+
+  // Nếu không on sale thì set lại oldPrice và salePercent = null
+  const displayOldPrice = isOnSale ? oldPrice : null;
+  const displaySalePercent = isOnSale ? parsedSalePercent : null;
 
   const formatPrice = (value) => {
     if (!value) return '';
@@ -12,9 +17,9 @@ const ProductBox = ({ name, price, oldPrice, salePercent, imageUrl }) => {
     <div className="bg-white rounded-lg shadow-md overflow-hidden w-64 hover:shadow-lg transition-shadow duration-300">
       <div className="relative">
         <img src={imageUrl} alt={name} className="w-full h-48 object-cover" />
-        {isOnSale && (
+        {displaySalePercent && (
           <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-            {salePercent}% OFF
+            {displaySalePercent}% OFF
           </span>
         )}
       </div>
@@ -24,9 +29,9 @@ const ProductBox = ({ name, price, oldPrice, salePercent, imageUrl }) => {
           <span className="text-xl font-bold text-gray-900">
             {formatPrice(price)} ₫
           </span>
-          {isOnSale && (
+          {displayOldPrice && (
             <span className="text-sm text-gray-500 line-through">
-              {formatPrice(oldPrice)} ₫
+              {formatPrice(displayOldPrice)} ₫
             </span>
           )}
         </div>
