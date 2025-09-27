@@ -16,7 +16,7 @@ export const signup = async (req, res) => {
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "Email already registered" });
+      return res.status(400).json({ message: "Email này đã được sử dụng" });
     }
 
     const user = await User.create({
@@ -27,7 +27,7 @@ export const signup = async (req, res) => {
 
     const token = generateToken(user);
     res.status(201).json({
-      message: "User registered successfully",
+      message: "Tài khoản đăng ký thành công",
       token,
       user: {
         id: user._id,
@@ -48,18 +48,18 @@ export const login = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "Thông tin không hợp lệ" });
     }
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "Thông tin không hợp lệ" });
     }
 
 
     const token = generateToken(user);
     res.json({
-      message: "Login successful",
+      message: "Đăng nhập thành công",
       token,
       user: {
         id: user._id,
