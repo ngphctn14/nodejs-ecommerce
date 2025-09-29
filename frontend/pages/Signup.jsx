@@ -11,11 +11,12 @@ const Signup = () => {
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
 
-      <form action="" className="flex flex-col gap-1 mt-20 mx-auto p-4 w-full max-w-md m-4 rounded-md border border-gray-200 bg-white">
+      <div className="flex flex-col gap-1 mt-20 mx-auto p-4 w-full max-w-md m-4 rounded-md border border-gray-200 bg-white">
         <div className="ml-auto mr-auto text-2xl font-semibold">Đăng ký</div>
-        <TextInput />
-        <EmailInput />
-        <PasswordInput />
+        <TextInput placeholder={"Nguyễn Văn A"} id={"full-name"} name="fullName" />
+        <EmailInput label={"Email"} placeholder={"example@gmail.com"}/>
+        <PasswordInput label={"Mật khẩu"} id={"password"} name={"password"} />
+        <PasswordInput label={"Nhập lại mật khẩu"} id={"confirm-password"} name="confirmPassword" />
 
         <Button type={"submit"} textContent={"Đăng ký"} />
 
@@ -26,13 +27,13 @@ const Signup = () => {
         </div>
 
         <GoogleSigninButton />
-      </form>
+      </div>
 
       <div className="flex-grow"></div>
 
       <Footer />
     </div>
   );
-}
+};
 
 export default Signup;

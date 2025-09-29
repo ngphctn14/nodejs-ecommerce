@@ -12,7 +12,8 @@ import FGType from "../pages/Products/Types/FGType"
 import TFType from "../pages/Products/Types/TFType"
 import Futsal from "../pages/Products/Types/Futsal"
 import OthersProducts from "../pages/Products/Types/OthersProducts"
-
+import Error from "../pages/Error";
+import ForgotPassword from "../pages/ForgotPassword";
 
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/products" element={<Products />} />
         <Route path="/brands/adidas" element={<AdidasBrand />} />
         <Route path="/brands/nike" element={<NikeBrand />} />
@@ -33,8 +35,7 @@ function App() {
         <Route path="/types/others" element={<OthersProducts />} />
 
 
-        
-        
+        <Route path="*" element={<Error />} />
       </Routes>
     </Router>
   );
