@@ -14,6 +14,7 @@ import Futsal from "../pages/Products/Types/Futsal"
 import OthersProducts from "../pages/Products/Types/OthersProducts"
 import Error from "../pages/Error";
 import ForgotPassword from "../pages/ForgotPassword";
+import Cart from "../pages/Cart";
 
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/cart" element={<Cart />} />
         <Route path="/products" element={<Products />} />
         <Route path="/brands/adidas" element={<AdidasBrand />} />
         <Route path="/brands/nike" element={<NikeBrand />} />

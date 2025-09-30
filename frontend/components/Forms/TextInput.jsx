@@ -9,7 +9,7 @@ const TextInput = ({id, name, placeholder}) => {
           Họ và tên
         </label>
 
-        <inpu
+        <input
           type="text"
           id={id}
           name={name}

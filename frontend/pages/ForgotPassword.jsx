@@ -11,7 +11,7 @@ const ForgotPassword = () => {
         <div className="ml-auto mr-auto text-2xl font-semibold">Đặt lại mật khẩu</div>
         <div className="pt-5"></div>
         <EmailInput placeholder={"Email"}/>
-        <Button textContent={"Tiếp theo"} />
+        <Button textContent={"Tiếp theo"} className={"cursor-pointer"} />
       </div>
       <div className="flex-grow"></div>
       <Footer />

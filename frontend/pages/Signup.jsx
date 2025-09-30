@@ -18,7 +18,7 @@ const Signup = () => {
         <PasswordInput label={"Mật khẩu"} id={"password"} name={"password"} />
         <PasswordInput label={"Nhập lại mật khẩu"} id={"confirm-password"} name="confirmPassword" />
 
-        <Button type={"submit"} textContent={"Đăng ký"} />
+        <Button type={"submit"} textContent={"Đăng ký"} className={"cursor-pointer"}/>
 
         <div className="flex w-full items-center gap-2 py-2 text-sm text-gray-900">
           <div className="h-px w-full bg-slate-200"></div>
@@ -26,7 +26,7 @@ const Signup = () => {
           <div className="h-px w-full bg-slate-200"></div>
         </div>
 
-        <GoogleSigninButton />
+        <GoogleSigninButton className={"cursor-pointer"} />
       </div>
 
       <div className="flex-grow"></div>

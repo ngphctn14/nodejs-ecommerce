@@ -21,7 +21,7 @@ const Login = () => {
           </a>
         </p>
 
-        <Button type={"submit"} textContent={"Đăng nhập"} />
+        <Button type={"submit"} textContent={"Đăng nhập"} className={"cursor-pointer"} />
 
         <div class="flex w-full items-center gap-2 py-2 text-sm text-gray-900">
           <div class="h-px w-full bg-slate-200"></div>
@@ -29,7 +29,7 @@ const Login = () => {
           <div class="h-px w-full bg-slate-200"></div>
         </div>
 
-        <GoogleSigninButton />
+        <GoogleSigninButton className={"cursor-pointer"}/>
 
         <div class="mt-2 text-center text-sm text-slate-600">
           Bạn chưa có tài khoản? &#8203;
