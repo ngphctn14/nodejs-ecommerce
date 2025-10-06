@@ -15,6 +15,9 @@ import OthersProducts from "../pages/Products/Types/OthersProducts"
 import Error from "../pages/Error";
 import ForgotPassword from "../pages/ForgotPassword";
 import Cart from "../pages/Cart";
+import Profile from '../pages/Profile'
+import Orders from '../pages/Orders'
+
 
 
 function App() {
@@ -35,6 +38,9 @@ function App() {
         <Route path="/types/co-nhan-tao" element={<TFType />} />
         <Route path="/types/futsal" element={<Futsal />} />
         <Route path="/types/others" element={<OthersProducts />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/orders" element={<Orders />} />
+
 
 
         <Route path="*" element={<Error />} />
