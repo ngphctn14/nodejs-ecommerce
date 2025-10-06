@@ -1,4 +1,10 @@
-const Button = ({ textContent, type = "button", onClick, className="", ...props}) => {
+const Button = ({
+  textContent,
+  type = "button",
+  onClick,
+  className = "",
+  ...props
+}) => {
   return (
     <button
       type={type}

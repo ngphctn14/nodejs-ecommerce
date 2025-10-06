@@ -1,4 +1,4 @@
-const EmailInput = ({label, placeholder}) => {
+const EmailInput = ({ label, placeholder }) => {
   return (
     <>
       <div>

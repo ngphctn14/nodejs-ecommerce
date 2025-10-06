@@ -1,11 +1,14 @@
 import ProductVariant from "../models/productVariantModel.js";
 
-export const getProductVariants = async (req, res) => {
+export const getProductVariantsByProductId = async (req, res) => {
   try {
-    const variants = await ProductVariant.find();
+    const { productId } = req.params;
+    const variants = await ProductVariant.find({ product_id: productId });
+    if (!variants.length)
+      return res.status(404).json({ message: "Không tìm thấy biến thể sản phẩm" });
     res.json(variants);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 

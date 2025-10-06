@@ -1,0 +1,97 @@
+import Address from "../models/addressModel.js";
+
+export const createAddress = async (req, res) => {
+  try {
+    const { addressLine, province, ward, isDefault } = req.body;
+    const userId = req.user.id;
+
+    if (isDefault) {
+      await Address.updateMany(
+        { userId },
+        { $set: { isDefault: false } }
+      );
+    }
+
+    const newAddress = new Address({
+      userId,
+      addressLine,
+      province,
+      ward,
+      isDefault: isDefault || false,
+    });
+
+    await newAddress.save();
+    res.status(201).json(newAddress);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const getAddresses = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const addresses = await Address.find({ userId }).sort({ isDefault: -1 });
+    res.json(addresses);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const getAddress = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Không tìm thấy người dùng"});
+    }
+
+    const address = await Address.findOne({ _id: id, userId });
+    if (!address) return res.status(404).json({ message: "Không tìm thấy địa chỉ" });
+
+    res.json(address);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+export const updateAddress = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { addressLine, province, ward, isDefault } = req.body;
+    const userId = req.user.id;
+
+    if (isDefault) {
+      await Address.updateMany(
+        { userId },
+        { $set: { isDefault: false } }
+      );
+    }
+
+    const updated = await Address.findOneAndUpdate(
+      { _id: id, userId },
+      { addressLine, province, ward, isDefault },
+      { new: true }
+    );
+
+    if (!updated) return res.status(404).json({ message: "Không tìm thấy địa chỉ" });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const deleteAddress = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const deleted = await Address.findOneAndDelete({ _id: id, userId });
+    if (!deleted) return res.status(404).json({ message: "Không tìm thấy địa chỉ" });
+
+    res.json({ message: "Xóa địa chỉ thành công" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
