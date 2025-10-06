@@ -1,9 +1,9 @@
 import express from "express";
-import { auth } from "../middlewares/authMiddleware.js";
+import { authenticateUser } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-router.get("/profile", auth, (req, res) => {
+router.get("/profile", authenticateUser, (req, res) => {
   res.json({ message: "User profile", user: req.user });
 });
 

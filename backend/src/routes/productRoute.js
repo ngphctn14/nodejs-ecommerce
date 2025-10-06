@@ -7,18 +7,17 @@ import {
   deleteProduct,
 } from "../controllers/productController.js";
 
-import productVariantRoutes from "./productVariantRoute.js";
-import productImageRoutes from "./productImageRoute.js";
+import { getProductVariantsByProductId } from "../controllers/productVariantController.js";
+import { getProductImagesByProductId } from "../controllers/productImageController.js";
 
 const router = express.Router();
 
 router.get("/", getProducts);
 router.get("/:id", getProduct);
+router.get("/:productId/variants", getProductVariantsByProductId);
+router.get("/:productId/images", getProductImagesByProductId);
 router.post("/", createProduct);
 router.put("/:id", updateProduct);
 router.delete("/:id", deleteProduct);
-
-router.use("/:productId/variants", productVariantRoutes);
-router.use("/:productId/images", productImageRoutes);
 
 export default router;

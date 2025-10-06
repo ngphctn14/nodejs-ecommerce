@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-export const auth = (req, res, next) => {
+export const authenticateUser = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -18,7 +18,7 @@ export const auth = (req, res, next) => {
   }
 };
 
-export const isAdmin = (req, res, next) => {
+export const authorizeAdmin = (req, res, next) => {
   if (req.user.role !== "admin") {
     return res.status(403).json({ message: "Forbidden: Admins only" });
   }
