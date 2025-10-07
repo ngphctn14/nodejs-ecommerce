@@ -45,7 +45,7 @@ const NikeBrand = () => {
       <Navbar />
       <div className="pt-20 max-w-7xl mx-auto px-4">
         <ProductsIntroduction name="Giày bóng đá nike" description={description} image={productImage} />
-        <ProductList products={sampleProducts} />
+        <ProductList products={sampleProducts}  isBrand = {true}/>
       </div>
       <Footer />
     </div>

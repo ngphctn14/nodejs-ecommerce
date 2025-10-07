@@ -15,7 +15,7 @@ const shoeTypes = [
   { name: "Các sản phẩm khác", href: "/types/others" },
 ];
 
-const isLoggedIn = false;
+const isLoggedIn = true;
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
