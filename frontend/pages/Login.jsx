@@ -1,3 +1,5 @@
+import { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 import Navbar from "../components/Shared/Navbar";
 import Footer from "../components/Shared/Footer";
 import EmailInput from "../components/Forms/EmailInput";
@@ -6,38 +8,92 @@ import GoogleSigninButton from "../components/Forms/GoogleSigninButton";
 import Button from "../components/Forms/Button";
 
 const Login = () => {
+  const { login, user } = useContext(AuthContext);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      window.location.href="/";
+      return;
+    }
+  }, [user]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      await login(email, password);
+      window.location.href = "/";
+    } catch (err) {
+      setError(err.response?.data?.message || "Đăng nhập thất bại");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
 
-      <div
-        className="flex flex-col gap-1 mt-20 mx-auto p-4 w-full max-w-md m-4 rounded-md border border-gray-200 bg-white">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-1 mt-20 mx-auto p-4 w-full max-w-md m-4 rounded-md border border-gray-200 bg-white"
+      >
         <div className="ml-auto mr-auto text-2xl font-semibold">Đăng nhập</div>
-        <EmailInput label={"Email"} placeholder={"example@gmail.com"}/>
-        <PasswordInput label={"Mật khẩu"} id={"password"} name="password"/>
-        <p class="mb-3 mt-2 text-sm text-gray-500">
-          <a href="/forgot-password" class="text-[#4285f4] hover:text-blue-600">
+
+        <EmailInput
+          label="Email"
+          placeholder="example@gmail.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+
+        <PasswordInput
+          label="Mật khẩu"
+          id="password"
+          name="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+
+        <p className="mb-3 mt-2 text-sm text-gray-500">
+          <a
+            href="/forgot-password"
+            className="text-[#4285f4] hover:text-blue-600"
+          >
             Quên mật khẩu?
           </a>
         </p>
 
-        <Button type={"submit"} textContent={"Đăng nhập"} className={"cursor-pointer"} />
+        <Button
+          type="submit"
+          textContent={loading ? "Đang đăng nhập..." : "Đăng nhập"}
+          disabled={loading}
+          className="cursor-pointer"
+        />
 
-        <div class="flex w-full items-center gap-2 py-2 text-sm text-gray-900">
-          <div class="h-px w-full bg-slate-200"></div>
+        <div className="flex w-full items-center gap-2 py-2 text-sm text-gray-900">
+          <div className="h-px w-full bg-slate-200"></div>
           HOẶC
-          <div class="h-px w-full bg-slate-200"></div>
+          <div className="h-px w-full bg-slate-200"></div>
         </div>
 
-        <GoogleSigninButton className={"cursor-pointer"}/>
+        <GoogleSigninButton className="cursor-pointer" />
 
-        <div class="mt-2 text-center text-sm text-slate-600">
+        <div className="mt-2 text-center text-sm text-slate-600">
           Bạn chưa có tài khoản? &#8203;
-          <a href="/signup" class="font-medium text-[#4285f4]">
+          <a href="/signup" className="font-medium text-[#4285f4]">
             Đăng ký ngay!
           </a>
         </div>
-      </div>
+      </form>
 
       <div className="flex-grow"></div>
 
