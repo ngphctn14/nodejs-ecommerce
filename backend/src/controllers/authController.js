@@ -6,7 +6,7 @@ dotenv.config();
 
 const generateToken = (user) => {
   return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_KEY, {
-    expiresIn: "1h",
+    expiresIn: "7d",
   });
 };
 
@@ -44,9 +44,8 @@ export const signup = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-
     const user = await User.findOne({ email });
-    
+
     if (!user) {
       return res.status(400).json({ message: "Thông tin không hợp lệ" });
     }
@@ -56,8 +55,15 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Thông tin không hợp lệ" });
     }
 
-
     const token = generateToken(user);
+
+    res.cookie("accessToken", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
     res.json({
       message: "Đăng nhập thành công",
       token,
@@ -71,5 +77,24 @@ export const login = async (req, res) => {
     console.log(token);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+export const logout = async(req, res) => {
+  res.clearCookie("accessToken");
+  res.json({ message: "Đăng xuất thành công" });
+}
+
+export const getCurrentUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ message: "User authenticated", user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
   }
 };

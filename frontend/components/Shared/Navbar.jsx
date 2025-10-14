@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Search, ShoppingCart, User, ChevronDown, Menu } from "lucide-react";
+import { AuthContext } from "../../context/AuthContext";
 
 const brands = [
   { name: "Nike", href: "/brands/nike" },
@@ -15,12 +16,20 @@ const shoeTypes = [
   { name: "Các sản phẩm khác", href: "/types/others" },
 ];
 
-const isLoggedIn = true;
-
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const { user, logout } = useContext(AuthContext);
+
+  useEffect(() => {
+    if (user) {
+      setIsLoggedIn(true);
+    } else {
+      setIsLoggedIn(false);
+    }
+  }, [user]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -154,12 +163,13 @@ const Navbar = () => {
                   >
                     Đơn hàng
                   </a>
-                  <a
-                    href="/logout"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  <button
+                    onClick={logout}
+                    style={{cursor: "pointer"}}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     Đăng xuất
-                  </a>
+                  </button>
                 </div>
               </div>
             ) : (

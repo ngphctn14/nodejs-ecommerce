@@ -5,6 +5,7 @@ import ProfileForm from "../components/Profile/Profile";
 import AddressManager from "../components/Profile/AddressManager";
 
 const Profile = () => {
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />

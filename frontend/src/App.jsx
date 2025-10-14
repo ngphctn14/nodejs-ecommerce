@@ -18,8 +18,6 @@ import Cart from "../pages/Cart";
 import Profile from '../pages/Profile'
 import Orders from '../pages/Orders'
 
-
-
 function App() {
   return (
     <Router>
