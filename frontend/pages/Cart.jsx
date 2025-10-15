@@ -1,7 +1,8 @@
 import Button from "../components/Forms/Button";
 import Footer from "../components/Shared/Footer";
 import Navbar from "../components/Shared/Navbar";
-import { useState } from "react";
+import { useState} from "react";
+import { useNavigate } from "react-router-dom";
 import CartItem from "../components/Products/CartItem";
 
 const Cart = () => {
@@ -57,6 +58,16 @@ const Cart = () => {
     setCartItems((prev) => prev.filter((item) => item.id !== id));
   };
 
+  const navigate = useNavigate();
+
+  const navigateProducts = () => {
+    navigate("/products");
+  }
+
+  const navigateCheckout = () => {
+    navigate("/checkout");
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
@@ -67,6 +78,7 @@ const Cart = () => {
             <p className="mb-4">Giỏ hàng của bạn còn trống</p>
             <Button
               textContent={"Tiếp tục mua sắm"}
+              onClick={navigateProducts}
               className={"cursor-pointer mb-2"}
             />
           </div>
@@ -75,12 +87,12 @@ const Cart = () => {
             {/* Cart table */}
             <div className="col-span-1 md:col-span-3">
               <table className="w-full border-collapse">
-                <thead className="border-b bg-gray-100">
+                <thead className="border-b border-gray-300 bg-gray-100">
                   <tr>
-                    <th className="p-4 text-left">Sản phẩm</th>
-                    <th className="p-4 text-center">Đơn giá</th>
-                    <th className="p-4 text-center">Số lượng</th>
-                    <th className="p-4 text-center">Số tiền</th>
+                    <th className="p-4 text-gray-700 text-left">Sản phẩm</th>
+                    <th className="p-4 text-gray-700 text-center">Đơn giá</th>
+                    <th className="p-4 text-gray-700 text-center">Số lượng</th>
+                    <th className="p-4 text-gray-700 text-center">Số tiền</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -112,7 +124,7 @@ const Cart = () => {
                   ₫
                 </span>
               </p>
-              <Button textContent="Tiến hành thanh toán" className="w-full" />
+              <Button onClick={navigateCheckout} textContent="Tiến hành thanh toán" className="cursor-pointer w-full" />
             </div>
           </div>
         )}

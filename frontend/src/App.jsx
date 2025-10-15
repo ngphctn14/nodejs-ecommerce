@@ -17,6 +17,7 @@ import ForgotPassword from "../pages/ForgotPassword";
 import Cart from "../pages/Cart";
 import Profile from '../pages/Profile'
 import Orders from '../pages/Orders'
+import Checkout from "../pages/Checkout";
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
         <Route path="/types/others" element={<OthersProducts />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/orders" element={<Orders />} />
+        <Route path="/checkout" element={<Checkout />} />
 
 
 
