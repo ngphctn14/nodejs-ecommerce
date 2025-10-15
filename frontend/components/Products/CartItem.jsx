@@ -1,6 +1,6 @@
 const CartItem = ({ item, onIncrease, onDecrease, onRemove }) => {
   return (
-    <tr className="border-b">
+    <tr className="border-b border-gray-300">
       {/* Product details */}
       <td className="p-4 flex gap-4">
         <img
