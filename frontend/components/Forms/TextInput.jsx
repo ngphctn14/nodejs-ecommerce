@@ -1,4 +1,4 @@
-const TextInput = ({id, name, placeholder, ...props}) => {
+const TextInput = ({label, id, name, placeholder, ...props}) => {
   return (
     <>
       <div>
@@ -6,7 +6,7 @@ const TextInput = ({id, name, placeholder, ...props}) => {
           for={id}
           className="block text-sm text-gray-900"
         >
-          Họ và tên
+          {label}
         </label>
 
         <input

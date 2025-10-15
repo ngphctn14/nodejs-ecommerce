@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, ShoppingCart, User, ChevronDown, Menu } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
 
@@ -30,6 +31,12 @@ const Navbar = () => {
       setIsLoggedIn(false);
     }
   }, [user]);
+
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    navigate("/");
+  }
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -164,7 +171,10 @@ const Navbar = () => {
                     Đơn hàng
                   </a>
                   <button
-                    onClick={logout}
+                    onClick={() => {
+                      logout();
+                      handleLogout();
+                    }}
                     style={{cursor: "pointer"}}
                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
