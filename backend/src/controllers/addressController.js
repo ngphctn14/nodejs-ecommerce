@@ -95,3 +95,36 @@ export const deleteAddress = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+export default setDefault = async (req, res) => {
+  try{
+    const userId = req.user.id;
+    const { addressId } = req.body;
+    if (!addressId) {
+      return res.status(400).json({ message: "Thiếu addressId" });
+    }
+     await Address.updateMany(
+      { userId },
+      { $set: { isDefault: false } }
+    );
+
+     const updatedAddress = await Address.findOneAndUpdate(
+      { _id: addressId, userId },
+      { $set: { isDefault: true } },
+      { new: true }
+    );
+
+    if (!updatedAddress) {
+      return res.status(404).json({ message: "Không tìm thấy địa chỉ" });
+    }
+
+    res.status(200).json({
+      message: "Cập nhật địa chỉ mặc định thành công",
+      address: updatedAddress,
+    });
+  } catch (error) {
+    console.error("Lỗi khi cập nhật địa chỉ mặc định:", error);
+    res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+}
+
