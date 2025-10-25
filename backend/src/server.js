@@ -47,11 +47,11 @@ app.use("/api/products", productRoutes);
 app.use("/api/product-images", productImageRoutes);
 app.use("/api/product-variants", productVariantRoutes);
 
-app.use("api/carts", cartRoutes);
-app.use("api/cart-items", cartItemRoutes);
+app.use("/api/carts", cartRoutes);
+app.use("/api/cart-items", cartItemRoutes);
 
-app.use("api/ordres", orderRoutes);
-app.use("api/order-items", orderItemRoutes);
+app.use("/api/ordres", orderRoutes);
+app.use("/api/order-items", orderItemRoutes);
 
 connectDB().then(() => {
   const PORT = process.env.PORT || 3000;

@@ -2,7 +2,7 @@ import Address from "../models/addressModel.js";
 
 export const createAddress = async (req, res) => {
   try {
-    const { addressLine, province, ward, isDefault } = req.body;
+    const { addressLine, province, ward, phoneNumber, isDefault } = req.body;
     const userId = req.user.id;
 
     if (isDefault) {
@@ -14,6 +14,7 @@ export const createAddress = async (req, res) => {
 
     const newAddress = new Address({
       userId,
+      phoneNumber,
       addressLine,
       province,
       ward,
@@ -23,6 +24,7 @@ export const createAddress = async (req, res) => {
     await newAddress.save();
     res.status(201).json(newAddress);
   } catch (err) {
+    console.log(err.message);
     res.status(500).json({ message: err.message });
   }
 };
@@ -59,7 +61,7 @@ export const getAddress = async (req, res) => {
 export const updateAddress = async (req, res) => {
   try {
     const { id } = req.params;
-    const { addressLine, province, ward, isDefault } = req.body;
+    const { addressLine, phoneNumber, province, ward, isDefault } = req.body;
     const userId = req.user.id;
 
     if (isDefault) {
@@ -71,7 +73,7 @@ export const updateAddress = async (req, res) => {
 
     const updated = await Address.findOneAndUpdate(
       { _id: id, userId },
-      { addressLine, province, ward, isDefault },
+      { addressLine, phoneNumber, province, ward, isDefault },
       { new: true }
     );
 
@@ -96,11 +98,11 @@ export const deleteAddress = async (req, res) => {
   }
 };
 
-export default setDefault = async (req, res) => {
+export const setDefault = async (req, res) => {
   try{
     const userId = req.user.id;
-    const { addressId } = req.body;
-    if (!addressId) {
+    const { id } = req.params;
+    if (!id) {
       return res.status(400).json({ message: "Thiếu addressId" });
     }
      await Address.updateMany(
@@ -109,7 +111,7 @@ export default setDefault = async (req, res) => {
     );
 
      const updatedAddress = await Address.findOneAndUpdate(
-      { _id: addressId, userId },
+      { _id: id, userId },
       { $set: { isDefault: true } },
       { new: true }
     );
