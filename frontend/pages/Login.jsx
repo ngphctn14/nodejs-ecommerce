@@ -16,7 +16,7 @@ const Login = () => {
 
   useEffect(() => {
     if (user) {
-      window.location.href="/";
+      window.location.href = "/";
       return;
     }
   }, [user]);
@@ -34,6 +34,10 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
   };
 
   return (
@@ -85,7 +89,7 @@ const Login = () => {
           <div className="h-px w-full bg-slate-200"></div>
         </div>
 
-        <GoogleSigninButton className="cursor-pointer" />
+        <GoogleSigninButton onClick={handleGoogleLogin} className="cursor-pointer" />
 
         <div className="mt-2 text-center text-sm text-slate-600">
           Bạn chưa có tài khoản? &#8203;

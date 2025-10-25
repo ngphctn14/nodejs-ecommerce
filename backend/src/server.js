@@ -19,12 +19,14 @@ import orderRoutes from "./routes/orderRoute.js";
 import orderItemRoutes from "./routes/orderItemRoute.js";
 
 import connectDB from "./config/db.js";
+import passport from "./config/passport.js";
 
 dotenv.config();
 
 const app = express();
 
 app.use(express.json());
+app.use(passport.initialize());
 
 app.use(
   cors({
