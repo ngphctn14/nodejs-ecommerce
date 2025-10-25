@@ -1,6 +1,7 @@
 import User from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import passport from "passport";
 
 dotenv.config();
 
@@ -74,16 +75,15 @@ export const login = async (req, res) => {
         role: user.role,
       },
     });
-    console.log(token);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-export const logout = async(req, res) => {
+export const logout = async (req, res) => {
   res.clearCookie("accessToken");
   res.json({ message: "Đăng xuất thành công" });
-}
+};
 
 export const getCurrentUser = async (req, res) => {
   try {
@@ -97,4 +97,29 @@ export const getCurrentUser = async (req, res) => {
     console.error(error);
     res.status(500).json({ message: "Server error" });
   }
+};
+
+export const googleLogin = passport.authenticate("google", {
+  scope: ["openid", "profile", "email"],
+});
+
+export const googleCallback = (req, res, next) => {
+  passport.authenticate("google", (err, user) => {
+    if (err || !user) {
+      return res.redirect(`${process.env.CLIENT_URL}/login?error=oauth_failed`);
+    }
+
+    const token = generateToken(user);
+
+    res.cookie("accessToken", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.redirect(`${process.env.CLIENT_URL}`);
+
+    next();
+  })(req, res, next);
 };

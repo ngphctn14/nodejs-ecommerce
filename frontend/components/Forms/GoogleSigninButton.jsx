@@ -1,4 +1,4 @@
-const GoogleSigninButton = ({onClick, className=""}) => {
+const GoogleSigninButton = ({onClick, className="", ...props}) => {
   return (
     <div>
       <button
@@ -15,6 +15,7 @@ const GoogleSigninButton = ({onClick, className=""}) => {
           role="img"
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 488 512"
+          {...props}
         >
           <path
             fill="currentColor"

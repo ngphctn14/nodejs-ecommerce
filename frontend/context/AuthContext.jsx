@@ -10,7 +10,6 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        // automatically sends cookies
         const res = await axiosClient.get("/auth/me");
         setUser(res.data.user);
       } catch (err) {
