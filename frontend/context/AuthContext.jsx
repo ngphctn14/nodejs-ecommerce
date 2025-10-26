@@ -8,12 +8,19 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+
     const fetchUser = async () => {
       try {
         const res = await axiosClient.get("/auth/me");
         setUser(res.data.user);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
       } catch (err) {
         setUser(null);
+        localStorage.removeItem("user");
       } finally {
         setLoading(false);
       }
@@ -24,6 +31,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     const res = await axiosClient.post("/auth/login", { email, password });
     setUser(res.data.user);
+    localStorage.setItem("user", JSON.stringify(res.data.user));
   };
 
   const signup = async (fullName, email, password) => {
@@ -32,12 +40,13 @@ export const AuthProvider = ({ children }) => {
       email,
       password,
     });
-    setUser(res.data.user);
+    return res.data;
   };
 
   const logout = async () => {
     await axiosClient.post("/auth/logout", {});
     setUser(null);
+    localStorage.removeItem("user");
   };
 
   return (

@@ -6,6 +6,7 @@ import EmailInput from "../components/Forms/EmailInput";
 import PasswordInput from "../components/Forms/PasswordInput";
 import GoogleSigninButton from "../components/Forms/GoogleSigninButton";
 import Button from "../components/Forms/Button";
+import axiosClient from "../api/axiosClient";
 
 const Login = () => {
   const { login, user } = useContext(AuthContext);
@@ -13,6 +14,8 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resendMsg, setResendMsg] = useState("");
+  const [canResend, setCanResend] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -25,14 +28,29 @@ const Login = () => {
     e.preventDefault();
     setError("");
     setLoading(true);
+    setResendMsg("");
+    setCanResend(false);
 
     try {
       await login(email, password);
       window.location.href = "/";
     } catch (err) {
       setError(err.response?.data?.message || "Đăng nhập thất bại");
+      if (err.response?.status === 401) {
+        setCanResend(true);
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    try {
+      console.log(email);
+      const res = await axiosClient.post("/auth/resend-verification", { email });
+      setResendMsg(res.data.message);
+    } catch (err) {
+      setResendMsg(err.response?.data?.message || "Không thể gửi lại email xác thực");
     }
   };
 
@@ -66,6 +84,22 @@ const Login = () => {
         />
 
         {error && <p className="text-red-500 text-sm">{error}</p>}
+
+        {canResend && (
+          <div className="text-center mt-3">
+            <button
+              type="button"
+              onClick={handleResendVerification}
+              className="text-blue-600 hover:underline text-sm cursor-pointer"
+            >
+              Gửi lại email xác thực
+            </button>
+          </div>
+        )}
+
+        {resendMsg && (
+          <p className="text-green-600 text-sm text-center mt-2">{resendMsg}</p>
+        )}
 
         <p className="mb-3 mt-2 text-sm text-gray-500">
           <a

@@ -1,7 +1,10 @@
-import User from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import passport from "passport";
+
+import User from "../models/userModel.js";
+
+import { sendVerificationEmail } from "../config/mailer.js";
 
 dotenv.config();
 
@@ -15,30 +18,36 @@ export const signup = async (req, res) => {
   try {
     const { fullName, email, password } = req.body;
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    let user = await User.findOne({ email });
+
+    if (user && user.isVerified) {
       return res.status(400).json({ message: "Email này đã được sử dụng" });
     }
 
-    const user = await User.create({
-      fullName,
-      email,
-      password,
-    });
+    if (user && !user.isVerified) {
+      user.fullName = fullName;
+      user.password = password;
+      await user.save();
+    }
 
-    const token = generateToken(user);
-    res.status(201).json({
-      message: "Tài khoản đăng ký thành công",
-      token,
-      user: {
-        id: user._id,
-        fullName: user.fullName,
-        email: user.email,
-        role: user.role,
-      },
-    });
+    if (!user) {
+      user = await User.create({ fullName, email, password });
+    }
+
+    const token = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.EMAIL_KEY,
+      { expiresIn: "1d" }
+    );
+
+    await sendVerificationEmail(user, token);
+
+    res
+      .status(201)
+      .json({ message: "Tài khoản được đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản." });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error(error);
+    res.status(500).json({ message: "Lỗi máy chủ" });
   }
 };
 
@@ -56,6 +65,10 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Thông tin không hợp lệ" });
     }
 
+    if (!user.isVerified) {
+      return res.status(401).json({ message: "Vui lòng xác thực email trước khi đăng nhập" });
+    }
+
     const token = generateToken(user);
 
     res.cookie("accessToken", token, {
@@ -67,7 +80,6 @@ export const login = async (req, res) => {
 
     res.json({
       message: "Đăng nhập thành công",
-      token,
       user: {
         id: user._id,
         full_name: user.fullName,
@@ -122,4 +134,47 @@ export const googleCallback = (req, res, next) => {
 
     next();
   })(req, res, next);
+};
+
+export const verifiyEmail = async (req, res) => {
+  try {
+    const { token } = req.query;
+    const decoded = jwt.verify(token, process.env.EMAIL_KEY);
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(404).json({message: "Không tìm thấy người dùng"});
+    }
+    if (user.isVerified) {
+      return res.json({message: "Email đã được xác xác thực"});
+    }
+
+    user.isVerified = true;
+    await user.save();
+
+    res.json({message: "Email đã được xác thực thành công!"});
+  } catch (error) {
+    res.status(400).json({message: "Token không hợp lệ hoặc đã hết hạn"});
+  }
+};
+
+export const resendVerification = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "Không tìm thấy người dùng" });
+    if (user.isVerified)
+      return res.json({ message: "Email đã được xác thực" });
+
+    const token = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.EMAIL_KEY,
+      { expiresIn: "1d" }
+    );
+
+    await sendVerificationEmail(user, token);
+    res.json({ message: "Email xác thực đã được gửi lại" });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi máy chủ" });
+  }
 };

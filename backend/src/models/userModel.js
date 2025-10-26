@@ -6,12 +6,20 @@ const userSchema = new mongoose.Schema(
     fullName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String },
+    isVerified: {type: Boolean, default: false},
     addresses: { type: String },
     role: { type: String, enum: ["customer", "admin"], default: "customer" },
     provider: { type: String, default: "local" }, // "local" or "google"
   },
   { timestamps: true }
 );
+
+userSchema.set("toJSON", {
+  transform: function (doc, ret) {
+    delete ret.password;
+    return ret;
+  },
+});
 
 userSchema.pre("save", async function (next) {
   if (this.isModified("password") && this.password) {

@@ -11,10 +11,10 @@ const brands = [
 ];
 
 const shoeTypes = [
-  { name: "Giày sân cỏ tự nhiên", href: "/types/co-tu-nhien" },
-  { name: "Giày sân cỏ nhân tạo", href: "/types/co-nhan-tao" },
-  { name: "Giày sân futsal", href: "/types/futsal" },
-  { name: "Các sản phẩm khác", href: "/types/others" },
+  { name: "Giày sân cỏ tự nhiên", href: "/categories/co-tu-nhien" },
+  { name: "Giày sân cỏ nhân tạo", href: "/categories/co-nhan-tao" },
+  { name: "Giày sân futsal", href: "/categories/futsal" },
+  { name: "Các sản phẩm khác", href: "/categories/others" },
 ];
 
 const Navbar = () => {
