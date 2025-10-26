@@ -15,12 +15,11 @@ const Signup = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
   const { signup, user } = useContext(AuthContext);
 
   useEffect(() => {
     if (user) {
-      window.location.href="/";
+      window.location.href = "/";
       return;
     }
   }, [user]);
@@ -28,31 +27,35 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
     if (!fullName || !email || !password || !confirmPassword) {
       setError("Vui lòng điền đầy đủ thông tin");
-      return;
-    }
-
-    if (password.length < 6) {
-      setError("Mật khẩu phải có ít nhất 6 ký tự");
+      setLoading(false);
       return;
     }
 
     if (password !== confirmPassword) {
       setError("Mật khẩu nhập lại không khớp");
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
     try {
-      await signup(fullName, email, password);
-      window.location.href = "/";
+      const res = await signup(fullName, email, password);
+      alert(
+        res.message ||
+          "Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản."
+      );
     } catch (err) {
       setError(err.response?.data?.message || "Đăng ký thất bại");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
   };
 
   return (
@@ -61,7 +64,7 @@ const Signup = () => {
 
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col gap-4 mt-20 mx-auto p-6 w-full max-w-md rounded-md border border-gray-200 bg-white"
+        className="flex flex-col gap-1 mt-20 mx-auto p-4 w-full max-w-md m-4 rounded-md border border-gray-200 bg-white"
       >
         <h2 className="text-center text-2xl font-semibold">Đăng ký</h2>
 
@@ -120,7 +123,7 @@ const Signup = () => {
         </div>
 
         {/* Google Sign In */}
-        <GoogleSigninButton className="cursor-pointer" />
+        <GoogleSigninButton onClick={handleGoogleLogin} className="cursor-pointer" />
       </form>
 
       <div className="flex-grow"></div>

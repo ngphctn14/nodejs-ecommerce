@@ -1,4 +1,13 @@
-import { login, logout, signup, getCurrentUser, googleLogin, googleCallback } from "../controllers/authController.js";
+import {
+  login,
+  logout,
+  signup,
+  getCurrentUser,
+  googleLogin,
+  googleCallback,
+  verifiyEmail,
+  resendVerification,
+} from "../controllers/authController.js";
 import { authenticateUser } from "../middlewares/authMiddleware.js";
 import express from "express";
 
@@ -10,5 +19,7 @@ router.post("/logout", logout);
 router.get("/me", authenticateUser, getCurrentUser);
 router.get("/google", googleLogin);
 router.get("/oauth2/redirect", googleCallback);
+router.get("/verify-email", verifiyEmail);
+router.post("/resend-verification", resendVerification);
 
 export default router;

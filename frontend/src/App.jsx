@@ -18,6 +18,7 @@ import Cart from "../pages/Cart";
 import Profile from '../pages/Profile'
 import Orders from '../pages/Orders'
 import Checkout from "../pages/Checkout";
+import VerifyEmail from "../pages/VerifyEmail";
 
 function App() {
   return (
@@ -33,13 +34,14 @@ function App() {
         <Route path="/brands/nike" element={<NikeBrand />} />
         <Route path="/brands/puma" element={<PumaBrand />} />
         <Route path="/brands/others" element={<OthersBrand />} />
-        <Route path="/types/co-tu-nhien" element={<FGType />} />
-        <Route path="/types/co-nhan-tao" element={<TFType />} />
-        <Route path="/types/futsal" element={<Futsal />} />
-        <Route path="/types/others" element={<OthersProducts />} />
+        <Route path="/categories/co-tu-nhien" element={<FGType />} />
+        <Route path="/categories/co-nhan-tao" element={<TFType />} />
+        <Route path="/categories/futsal" element={<Futsal />} />
+        <Route path="/categories/others" element={<OthersProducts />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/checkout" element={<Checkout />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
 
 
 
