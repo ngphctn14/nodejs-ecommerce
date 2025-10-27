@@ -15,7 +15,19 @@ export const getCategory = async (req, res) => {
     if (!category) {
       return res.status(404).json({ message: "Không tìm thấy loại sản phẩm" });
     }
-    res.json(category);
+    res.json({ category });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getCategoryBySlug = async (req, res) => {
+  try {
+    const category = await Category.findOne({ slug: req.params.slug });
+    if (!category)
+      return res.status(404).json({ message: "Không tìm thấy loại sản phẩm" });
+
+    res.json({ category });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -23,7 +35,6 @@ export const getCategory = async (req, res) => {
 
 export const createCategory = async (req, res) => {
   try {
-    console.log("Incoming body:", req.body);
     const category = new Category(req.body);
     const saved = await category.save();
     res.status(201).json(saved);
