@@ -1,3 +1,4 @@
+import slugify from "slugify";
 import Brand from "../models/brandModel.js";
 
 export const getBrands = async (req, res) => {
@@ -16,6 +17,18 @@ export const getBrand = async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy nhãn hàng" });
     }
     res.json(brand);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getBrandBySlug = async (req, res) => {
+  try {
+    const brand = await Brand.findOne({ slug: req.params.slug });
+    if (!brand)
+      return res.status(404).json({ message: "Không tìm thấy thương hiệu" });
+
+    res.json({ brand });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

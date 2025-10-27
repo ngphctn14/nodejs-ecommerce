@@ -2,20 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, ShoppingCart, User, ChevronDown, Menu } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
-
-const brands = [
-  { name: "Nike", href: "/brands/nike" },
-  { name: "Adidas", href: "/brands/adidas" },
-  { name: "Puma", href: "/brands/puma" },
-  { name: "Các hãng khác", href: "/brands/others" },
-];
-
-const shoeTypes = [
-  { name: "Giày sân cỏ tự nhiên", href: "/categories/co-tu-nhien" },
-  { name: "Giày sân cỏ nhân tạo", href: "/categories/co-nhan-tao" },
-  { name: "Giày sân futsal", href: "/categories/futsal" },
-  { name: "Các sản phẩm khác", href: "/categories/others" },
-];
+import axiosClient from "../../api/axiosClient";
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -23,6 +10,25 @@ const Navbar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { user, logout } = useContext(AuthContext);
+
+  const [brands, setBrands] = useState([]);
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [brandsRes, categoriesRes] = await Promise.all([
+          axiosClient.get("/brands"),
+          axiosClient.get("/categories"),
+        ]);
+        setBrands(brandsRes.data);
+        setCategories(categoriesRes.data);
+      } catch (error) {
+        console.error("Error fetching brands/categories:", error);
+      }
+    };
+    fetchData();
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -36,7 +42,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     navigate("/");
-  }
+  };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -75,7 +81,7 @@ const Navbar = () => {
                 {brands.map((brand) => (
                   <a
                     key={brand.name}
-                    href={brand.href}
+                    href={`/brands/${brand.slug}`}
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     {brand.name}
@@ -90,13 +96,13 @@ const Navbar = () => {
                 <ChevronDown className="ml-1 h-4 w-4 transition-transform group-hover:rotate-180" />
               </button>
               <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
-                {shoeTypes.map((type) => (
+                {categories.map((category) => (
                   <a
-                    key={type.name}
-                    href={type.href}
+                    key={category.name}
+                    href={`/categories/${category.slug}`}
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
-                    {type.name}
+                    {category.name}
                   </a>
                 ))}
               </div>
@@ -175,7 +181,7 @@ const Navbar = () => {
                       logout();
                       handleLogout();
                     }}
-                    style={{cursor: "pointer"}}
+                    style={{ cursor: "pointer" }}
                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     Đăng xuất
@@ -217,7 +223,7 @@ const Navbar = () => {
                 {brands.map((brand) => (
                   <a
                     key={brand.name}
-                    href={brand.href}
+                    href={`/brands/${brand.slug}`}
                     className="block pl-6 py-1 text-sm text-gray-600 hover:text-gray-900"
                   >
                     {brand.name}
@@ -228,13 +234,13 @@ const Navbar = () => {
                 <span className="block px-3 py-2 text-gray-700 font-medium">
                   Loại giày
                 </span>
-                {shoeTypes.map((type) => (
+                {categories.map((category) => (
                   <a
-                    key={type.name}
-                    href={type.href}
+                    key={category.name}
+                    href={`/categories/${category.slug}`}
                     className="block pl-6 py-1 text-sm text-gray-600 hover:text-gray-900"
                   >
-                    {type.name}
+                    {category.name}
                   </a>
                 ))}
               </div>

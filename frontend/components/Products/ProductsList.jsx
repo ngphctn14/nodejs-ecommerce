@@ -1,11 +1,20 @@
 import React, { useState, useEffect } from "react";
 import ProductBox from "../Home/ProductBox";
 import { Range } from "react-range";
+import fallbackImage from "/giaybongda.jpg";
 
-const ProductsList = ({ products, minPrice = 0, maxPrice = 5000000, isBrand }) => {
+const ProductsList = ({
+  products,
+  minPrice = 0,
+  maxPrice = 5000000,
+  isBrand,
+}) => {
   const [sortOption, setSortOption] = useState("default");
   const [currentPage, setCurrentPage] = useState(1);
-  const [priceRange, setPriceRange] = useState({ min: minPrice, max: maxPrice });
+  const [priceRange, setPriceRange] = useState({
+    min: minPrice,
+    max: maxPrice,
+  });
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedBrand, setSelectedBrand] = useState("");
@@ -19,10 +28,13 @@ const ProductsList = ({ products, minPrice = 0, maxPrice = 5000000, isBrand }) =
     let filtered = [...products];
 
     filtered = filtered.filter(
-      (p) => p.price >= priceRange.min && p.price <= priceRange.max
+      (p) => p.basePrice >= priceRange.min && p.basePrice <= priceRange.max
     );
-    if (selectedSize) filtered = filtered.filter((p) => p.size === selectedSize);
-    if (selectedColor) filtered = filtered.filter((p) => p.color === selectedColor);
+
+    if (selectedSize)
+      filtered = filtered.filter((p) => p.size === selectedSize);
+    if (selectedColor)
+      filtered = filtered.filter((p) => p.color === selectedColor);
     if (!isBrand && selectedBrand)
       filtered = filtered.filter((p) => p.brand === selectedBrand);
 
@@ -45,7 +57,7 @@ const ProductsList = ({ products, minPrice = 0, maxPrice = 5000000, isBrand }) =
         sorted.sort((a, b) => b.sales - a.sales);
         break;
       default:
-        sorted.sort((a, b) => a.id - b.id);
+        sorted.sort((a, b) => a._id.localeCompare(b._id));
         break;
     }
     return sorted;
@@ -57,7 +69,10 @@ const ProductsList = ({ products, minPrice = 0, maxPrice = 5000000, isBrand }) =
   const totalPages = Math.ceil(sortedProducts.length / productsPerPage);
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = sortedProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+  const currentProducts = sortedProducts.slice(
+    indexOfFirstProduct,
+    indexOfLastProduct
+  );
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -95,36 +110,45 @@ const ProductsList = ({ products, minPrice = 0, maxPrice = 5000000, isBrand }) =
         <div className="mb-6">
           <h4 className="font-medium mb-2">Giá</h4>
           <Range
-  step={100000}
-  min={minPrice}
-  max={maxPrice}
-  values={[priceRange.min, priceRange.max]}
-  onChange={(values) => setPriceRange({ min: values[0], max: values[1] })}
-  renderTrack={({ props, children }) => (
-    <div
-      {...props}
-      className="h-1 w-full bg-gray-300 rounded-full relative"
-    >
-      <div
-        className="h-1 bg-blue-500 rounded-full absolute"
-        style={{
-          left: `${((priceRange.min - minPrice) / (maxPrice - minPrice)) * 100}%`,
-          width: `${((priceRange.max - priceRange.min) / (maxPrice - minPrice)) * 100}%`,
-        }}
-      />
-      {children}
-    </div>
-  )}
-  renderThumb={({ props }) => (
-    <div
-      {...props}
-      className="w-4 h-4 bg-blue-500 rounded-full border border-white shadow-md cursor-pointer"
-      style={{
-        ...props.style,
-      }}
-    />
-  )}
-/>
+            step={100000}
+            min={minPrice}
+            max={maxPrice}
+            values={[priceRange.min, priceRange.max]}
+            onChange={(values) =>
+              setPriceRange({ min: values[0], max: values[1] })
+            }
+            renderTrack={({ props, children }) => (
+              <div
+                {...props}
+                className="h-1 w-full bg-gray-300 rounded-full relative"
+              >
+                <div
+                  className="h-1 bg-blue-500 rounded-full absolute"
+                  style={{
+                    left: `${
+                      ((priceRange.min - minPrice) / (maxPrice - minPrice)) *
+                      100
+                    }%`,
+                    width: `${
+                      ((priceRange.max - priceRange.min) /
+                        (maxPrice - minPrice)) *
+                      100
+                    }%`,
+                  }}
+                />
+                {children}
+              </div>
+            )}
+            renderThumb={({ props }) => (
+              <div
+                {...props}
+                className="w-4 h-4 bg-blue-500 rounded-full border border-white shadow-md cursor-pointer"
+                style={{
+                  ...props.style,
+                }}
+              />
+            )}
+          />
           <div className="flex justify-between text-sm mt-2">
             <span>{priceRange.min.toLocaleString()}đ</span>
             <span>{priceRange.max.toLocaleString()}đ</span>
@@ -140,7 +164,9 @@ const ProductsList = ({ products, minPrice = 0, maxPrice = 5000000, isBrand }) =
               id={size}
               label={size}
               checked={selectedSize === size}
-              onChange={() => setSelectedSize(selectedSize === size ? "" : size)}
+              onChange={() =>
+                setSelectedSize(selectedSize === size ? "" : size)
+              }
             />
           ))}
         </div>
@@ -154,7 +180,9 @@ const ProductsList = ({ products, minPrice = 0, maxPrice = 5000000, isBrand }) =
               id={color}
               label={color}
               checked={selectedColor === color}
-              onChange={() => setSelectedColor(selectedColor === color ? "" : color)}
+              onChange={() =>
+                setSelectedColor(selectedColor === color ? "" : color)
+              }
             />
           ))}
         </div>
@@ -169,7 +197,9 @@ const ProductsList = ({ products, minPrice = 0, maxPrice = 5000000, isBrand }) =
                 id={brand}
                 label={brand}
                 checked={selectedBrand === brand}
-                onChange={() => setSelectedBrand(selectedBrand === brand ? "" : brand)}
+                onChange={() =>
+                  setSelectedBrand(selectedBrand === brand ? "" : brand)
+                }
               />
             ))}
           </div>
@@ -196,12 +226,12 @@ const ProductsList = ({ products, minPrice = 0, maxPrice = 5000000, isBrand }) =
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
           {currentProducts.map((product) => (
             <ProductBox
-              key={product.id}
+              key={product._id}
               name={product.name}
-              price={product.price}
-              oldPrice={product.oldPrice}
-              salePercent={product.salePercent}
-              imageUrl={product.imageUrl}
+              price={product.basePrice}
+              oldPrice={product.oldPrice || product.basePrice}
+              discountPercent={product.discountPercent || 0}
+              imageUrl={product.imageUrl || fallbackImage}
             />
           ))}
         </div>
