@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import Navbar from "../components/Shared/Navbar";
-import Footer from "../components/Shared/Footer";
-import ProductList from "../components/Products/ProductsList";
-import ProductsIntroduction from "../components/Products/ProductsIntroduction";
-import axiosClient from "../api/axiosClient";
+import Navbar from "../../components/Shared/Navbar";
+import Footer from "../../components/Shared/Footer";
+import ProductList from "../../components/Products/ProductsList";
+import ProductsIntroduction from "../../components/Products/ProductsIntroduction";
+import axiosClient from "../../api/axiosClient";
 
 const BrandPage = () => {
   const { slug } = useParams();

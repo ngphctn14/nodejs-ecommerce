@@ -11,8 +11,8 @@ import Profile from '../pages/Profile'
 import Orders from '../pages/Orders'
 import Checkout from "../pages/Checkout";
 import VerifyEmail from "../pages/VerifyEmail";
-import CategoryPage from "../pages/CategoryPage";
-import BrandPage from "../pages/BrandPage";
+import CategoryPage from "../pages/Products/CategoryPage"
+import BrandPage from "../pages/Products/BrandPage"
 
 function App() {
   return (
