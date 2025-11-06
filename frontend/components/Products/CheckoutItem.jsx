@@ -9,11 +9,11 @@ const CheckoutItem = ({ item }) => {
         />
         <div>
           <h3 className="font-medium text-gray-800">{item.name}</h3>
-          <p className="text-sm text-gray-500">Màu: {item.color}</p>
           <p className="text-sm text-gray-500">Kích cỡ: {item.size}</p>
+          <p className="text-sm text-gray-500">Màu: {item.color}</p>
         </div>
       </div>
-      <span className="text-gray-800 font-medium">
+      <span className="text-gray-800 font-medium whitespace-nowrap">
         {(item.price * item.quantity).toLocaleString("vi-VN")} ₫
       </span>
     </div>

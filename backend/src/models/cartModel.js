@@ -4,10 +4,11 @@ const { Schema } = mongoose;
 
 const cartSchema = new Schema(
   {
-    user_id: {
+    userId: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      default: null,
+      required: true,
+      unique: true,
     },
   },
   { timestamps: true }

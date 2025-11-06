@@ -2,7 +2,7 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import dotenv from "dotenv";
 import User from "../models/userModel.js";
-import jwt from "jsonwebtoken";
+import Cart from "../models/cartModel.js";
 
 dotenv.config();
 
@@ -26,7 +26,15 @@ passport.use(
             email,
             password: Math.random().toString(36).slice(-8),
             provider: "google",
+            isVerified: true,
           });
+
+          await Cart.create({ userId: user._id });
+        }
+
+        if (user && !user.isVerified) {
+          user.isVerified = true;
+          user.save();
         }
 
         return done(null, user);

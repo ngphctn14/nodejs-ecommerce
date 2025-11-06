@@ -6,10 +6,10 @@ const userSchema = new mongoose.Schema(
     fullName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String },
-    isVerified: {type: Boolean, default: false},
+    isVerified: { type: Boolean, default: false },
     addresses: { type: String },
     role: { type: String, enum: ["customer", "admin"], default: "customer" },
-    provider: { type: String, default: "local" }, // "local" or "google"
+    provider: { type: String, default: "local" },
   },
   { timestamps: true }
 );

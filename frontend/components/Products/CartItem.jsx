@@ -4,14 +4,14 @@ const CartItem = ({ item, onIncrease, onDecrease, onRemove }) => {
       {/* Product details */}
       <td className="p-4 flex gap-4">
         <img
-          src="https://via.placeholder.com/80"
+          src={item.image}
           alt={item.name}
           className="w-20 h-20 object-cover"
         />
         <div>
           <p className="font-medium">{item.name}</p>
-          <p className="text-sm text-gray-500">Size: L</p>
-          <p className="text-sm text-gray-500">Color: Purple</p>
+          <p className="text-sm text-gray-500">Kích cỡ: {item.size}</p>
+          <p className="text-sm text-gray-500">Màu: {item.color}</p>
           <button
             onClick={() => onRemove(item.id)}
             className="text-sm text-red-500 hover:underline hover:cursor-pointer mt-1"
@@ -22,7 +22,9 @@ const CartItem = ({ item, onIncrease, onDecrease, onRemove }) => {
       </td>
 
       {/* Price */}
-      <td className="p-4 text-center">{item.price.toLocaleString("vi-VN")} ₫</td>
+      <td className="p-4 text-center">
+        {item.price.toLocaleString("vi-VN")} ₫
+      </td>
 
       {/* Quantity controls */}
       <td className="p-4 text-center">
