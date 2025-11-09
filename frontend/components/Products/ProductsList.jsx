@@ -232,6 +232,7 @@ const ProductsList = ({
               oldPrice={product.oldPrice || product.basePrice}
               discountPercent={product.discountPercent || 0}
               imageUrl={product.imageUrl || fallbackImage}
+              _id={product._id} // Truyền thêm _id
             />
           ))}
         </div>
