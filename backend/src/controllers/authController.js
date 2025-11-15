@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import passport from "passport";
 
 import User from "../models/userModel.js";
+import Cart from "../models/cartModel.js";
 
 import { sendVerificationEmail } from "../config/mailer.js";
 
@@ -25,6 +26,7 @@ export const signup = async (req, res) => {
     }
 
     if (user && !user.isVerified) {
+      console.log(user.fullName);
       user.fullName = fullName;
       user.password = password;
       await user.save();
@@ -32,6 +34,7 @@ export const signup = async (req, res) => {
 
     if (!user) {
       user = await User.create({ fullName, email, password });
+      await Cart.create({ userId: user._id });
     }
 
     const token = jwt.sign(
@@ -42,9 +45,10 @@ export const signup = async (req, res) => {
 
     await sendVerificationEmail(user, token);
 
-    res
-      .status(201)
-      .json({ message: "Tài khoản được đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản." });
+    res.status(201).json({
+      message:
+        "Tài khoản được đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.",
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Lỗi máy chủ" });
@@ -66,7 +70,9 @@ export const login = async (req, res) => {
     }
 
     if (!user.isVerified) {
-      return res.status(401).json({ message: "Vui lòng xác thực email trước khi đăng nhập" });
+      return res
+        .status(401)
+        .json({ message: "Vui lòng xác thực email trước khi đăng nhập" });
     }
 
     const token = generateToken(user);
@@ -104,7 +110,15 @@ export const getCurrentUser = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.json({ message: "User authenticated", user });
+    const cart = await Cart.findOne({ userId: user._id });
+
+    res.json({
+      message: "User authenticated",
+      user: {
+        ...user.toObject(),
+        cartId: cart._id,
+      },
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -143,18 +157,18 @@ export const verifiyEmail = async (req, res) => {
     const user = await User.findById(decoded.id);
 
     if (!user) {
-      return res.status(404).json({message: "Không tìm thấy người dùng"});
+      return res.status(404).json({ message: "Không tìm thấy người dùng" });
     }
     if (user.isVerified) {
-      return res.json({message: "Email đã được xác xác thực"});
+      return res.json({ message: "Email đã được xác xác thực" });
     }
 
     user.isVerified = true;
     await user.save();
 
-    res.json({message: "Email đã được xác thực thành công!"});
+    res.json({ message: "Email đã được xác thực thành công!" });
   } catch (error) {
-    res.status(400).json({message: "Token không hợp lệ hoặc đã hết hạn"});
+    res.status(400).json({ message: "Token không hợp lệ hoặc đã hết hạn" });
   }
 };
 
@@ -162,9 +176,9 @@ export const resendVerification = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "Không tìm thấy người dùng" });
-    if (user.isVerified)
-      return res.json({ message: "Email đã được xác thực" });
+    if (!user)
+      return res.status(404).json({ message: "Không tìm thấy người dùng" });
+    if (user.isVerified) return res.json({ message: "Email đã được xác thực" });
 
     const token = jwt.sign(
       { id: user._id, email: user.email },

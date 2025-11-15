@@ -9,6 +9,7 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [cartItemAmount, setCartItemAmount] = useState(0);
   const { user, logout } = useContext(AuthContext);
 
   const [brands, setBrands] = useState([]);
@@ -31,12 +32,33 @@ const Navbar = () => {
   }, []);
 
   useEffect(() => {
-    if (user) {
-      setIsLoggedIn(true);
-    } else {
-      setIsLoggedIn(false);
-    }
-  }, [user]);
+    const fetchCartCount = async () => {
+      if (user) {
+        setIsLoggedIn(true);
+        try {
+          const res = await axiosClient.get(`/cart-items/${user.cartId}`);
+          const totalQuantity = res.data.reduce(
+            (total) => total + 1,
+            0
+          );
+          setCartItemAmount(totalQuantity);
+        } catch (err) {
+          console.error("Failed to fetch cart count:", err);
+          setCartItemAmount(0);
+        }
+      } else {
+        setIsLoggedIn(false);
+        const localCart = JSON.parse(localStorage.getItem("cart")) || [];
+        const totalQuantity = localCart.reduce(
+          (total, item) => total + item.quantity,
+          0
+        );
+        setCartItemAmount(totalQuantity);
+      }
+    };
+
+    fetchCartCount();
+  }, [user, cartItemAmount]);
 
   const navigate = useNavigate();
 
@@ -153,7 +175,7 @@ const Navbar = () => {
             >
               <ShoppingCart className="h-6 w-6" />
               <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                0
+                {cartItemAmount}
               </span>
             </a>
 

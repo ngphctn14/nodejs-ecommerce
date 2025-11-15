@@ -1,85 +1,145 @@
+import { useEffect, useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import Button from "../components/Forms/Button";
 import Footer from "../components/Shared/Footer";
 import Navbar from "../components/Shared/Navbar";
-import { useState} from "react";
-import { useNavigate } from "react-router-dom";
 import CartItem from "../components/Products/CartItem";
+import axiosClient from "../api/axiosClient";
+import { AuthContext } from "../context/AuthContext";
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: "Nike React Infinity Run Flyknit",
-      size: "L",
-      color: "Purple",
-      price: 543000,
-      quantity: 2,
-      image: "https://via.placeholder.com/80x80.png?text=Nike",
-    },
-    {
-      id: 2,
-      name: "MacBook Pro 14-inch",
-      size: "Default",
-      color: "Space Gray",
-      price: 45000000,
-      quantity: 1,
-      image: "https://via.placeholder.com/80x80.png?text=MacBook",
-    },
-    {
-      id: 3,
-      name: "Logitech MX Master 3 Mouse",
-      size: "Default",
-      color: "Black",
-      price: 2500000,
-      quantity: 1,
-      image: "https://via.placeholder.com/80x80.png?text=Mouse",
-    },
-  ]);
-
-  const increaseQty = (id) => {
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
-      )
-    );
-  };
-
-  const decreaseQty = (id) => {
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === id && item.quantity > 1
-          ? { ...item, quantity: item.quantity - 1 }
-          : item
-      )
-    );
-  };
-
-  const removeItem = (id) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== id));
-  };
-
+  const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useContext(AuthContext);
 
-  const navigateProducts = () => {
-    navigate("/products");
-  }
+  const fetchCart = async () => {
+    try {
+      if (authLoading) return;
 
-  const navigateCheckout = () => {
-    navigate("/checkout");
-  }
+      if (!user) {
+        const localCart = JSON.parse(localStorage.getItem("cart")) || [];
+        setCartItems(localCart);
+        setLoading(false);
+        return;
+      }
+
+      const cartId = user.cartId;
+      if (!cartId) {
+        console.warn("⚠️ User has no cartId");
+        setCartItems([]);
+        setLoading(false);
+        return;
+      }
+
+      const res = await axiosClient.get(`/cart-items/${cartId}`);
+      const formatted = res.data.map((item) => ({
+        id: item._id,
+        name: item.product?.name || "Sản phẩm",
+        size: item.variant?.attributes?.size || "Default",
+        color: item.variant?.attributes?.color || "Default",
+        price: item.variant?.price || 0,
+        quantity: item.quantity,
+        image:
+          item.variantImages?.[0] ||
+          item.productImages?.[0] ||
+          "https://via.placeholder.com/80x80.png?text=Product",
+      }));
+
+      setCartItems(formatted);
+    } catch (err) {
+      console.error("❌ Lỗi khi tải giỏ hàng:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCart();
+  }, [user, authLoading]);
+
+  useEffect(() => {
+    if (!user && !authLoading) {
+      localStorage.setItem("cart", JSON.stringify(cartItems));
+    }
+  }, [cartItems, user, authLoading]);
+
+  const increaseQty = async (id) => {
+    try {
+      if (user) {
+        await axiosClient.put(`/cart-items/${id}/increase`);
+        await fetchCart();
+      } else {
+        setCartItems((prev) =>
+          prev.map((item) =>
+            item.id === id ? { ...item, quantity: item.quantity + 1 } : item
+          )
+        );
+      }
+    } catch (err) {
+      console.error("Lỗi khi tăng số lượng:", err);
+    }
+  };
+
+  const decreaseQty = async (id) => {
+    try {
+      if (user) {
+        await axiosClient.put(`/cart-items/${id}/decrease`);
+        await fetchCart(); 
+      } else {
+        setCartItems((prev) =>
+          prev.map((item) =>
+            item.id === id && item.quantity > 1
+              ? { ...item, quantity: item.quantity - 1 }
+              : item
+          )
+        );
+      }
+    } catch (err) {
+      console.error("Lỗi khi giảm số lượng:", err);
+    }
+  };
+
+  const removeItem = async (id) => {
+    try {
+      if (user) {
+        await axiosClient.delete(`/cart-items/${id}`);
+        await fetchCart(); 
+      } else {
+        setCartItems((prev) => prev.filter((item) => item.id !== id));
+      }
+    } catch (err) {
+      console.error("Lỗi khi xóa sản phẩm:", err);
+    }
+  };
+
+  const navigateProducts = () => navigate("/products");
+  const navigateCheckout = () => navigate("/checkout");
+
+  if (loading)
+    return (
+      <div className="min-h-screen flex justify-center items-center">
+        <p>Đang tải giỏ hàng...</p>
+      </div>
+    );
+
+  const subtotal = cartItems.reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0
+  );
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
 
-      <div className="flex-grow flex flex-col items-center justify-center w-full">
+      <div className="flex-grow mt-20 p-4 flex flex-col items-center justify-center w-full">
         {cartItems.length === 0 ? (
           <div className="flex flex-col justify-center items-center">
             <p className="mb-4">Giỏ hàng của bạn còn trống</p>
             <Button
-              textContent={"Tiếp tục mua sắm"}
+              textContent="Tiếp tục mua sắm"
               onClick={navigateProducts}
-              className={"cursor-pointer mb-2"}
+              className="cursor-pointer mb-2"
             />
           </div>
         ) : (
@@ -115,16 +175,14 @@ const Cart = () => {
               <p className="flex justify-between mb-2">
                 <span>Tạm tính:</span>
                 <span>
-                  {cartItems
-                    .reduce(
-                      (acc, item) => acc + item.price * item.quantity,
-                      0
-                    )
-                    .toLocaleString("vi-VN")}{" "}
-                  ₫
+                  {subtotal.toLocaleString("vi-VN")} ₫
                 </span>
               </p>
-              <Button onClick={navigateCheckout} textContent="Tiến hành thanh toán" className="cursor-pointer w-full" />
+              <Button
+                onClick={navigateCheckout}
+                textContent="Tiến hành thanh toán"
+                className="cursor-pointer w-full"
+              />
             </div>
           </div>
         )}

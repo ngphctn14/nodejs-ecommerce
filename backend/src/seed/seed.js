@@ -6,6 +6,9 @@ import Category from "../models/categoryModel.js";
 import Product from "../models/productModel.js";
 import ProductVariant from "../models/productVariantModel.js";
 import ProductImage from "../models/productImageModel.js";
+import Cart from "../models/cartModel.js";
+import CartItem from "../models/cartItemModel.js";
+import User from "../models/userModel.js";
 
 dotenv.config();
 
@@ -60,7 +63,9 @@ function getFootballDescription(categoryName) {
     ],
   };
 
-  const options = descriptions[categoryName] || ["Sản phẩm bóng đá chất lượng cao."];
+  const options = descriptions[categoryName] || [
+    "Sản phẩm bóng đá chất lượng cao.",
+  ];
   return faker.helpers.arrayElement(options);
 }
 
@@ -117,12 +122,30 @@ async function seedDatabase() {
 
     // 🏆 Danh mục
     const categoriesData = [
-      { name: "Giày đá bóng", description: "Giày đá bóng chính hãng, bám sân tốt và thoải mái." },
-      { name: "Áo đấu", description: "Áo thi đấu chính hãng, thoáng khí và bền đẹp." },
-      { name: "Quần đá bóng", description: "Quần thể thao linh hoạt, phù hợp cho thi đấu." },
-      { name: "Bóng đá", description: "Bóng đạt chuẩn thi đấu, độ nảy ổn định." },
-      { name: "Găng tay thủ môn", description: "Găng tay chất lượng cao, bảo vệ bàn tay tối đa." },
-      { name: "Phụ kiện bóng đá", description: "Phụ kiện hỗ trợ tập luyện và thi đấu hiệu quả." },
+      {
+        name: "Giày đá bóng",
+        description: "Giày đá bóng chính hãng, bám sân tốt và thoải mái.",
+      },
+      {
+        name: "Áo đấu",
+        description: "Áo thi đấu chính hãng, thoáng khí và bền đẹp.",
+      },
+      {
+        name: "Quần đá bóng",
+        description: "Quần thể thao linh hoạt, phù hợp cho thi đấu.",
+      },
+      {
+        name: "Bóng đá",
+        description: "Bóng đạt chuẩn thi đấu, độ nảy ổn định.",
+      },
+      {
+        name: "Găng tay thủ môn",
+        description: "Găng tay chất lượng cao, bảo vệ bàn tay tối đa.",
+      },
+      {
+        name: "Phụ kiện bóng đá",
+        description: "Phụ kiện hỗ trợ tập luyện và thi đấu hiệu quả.",
+      },
     ];
 
     const categories = await Category.insertMany(categoriesData);
@@ -134,14 +157,9 @@ async function seedDatabase() {
       const category = faker.helpers.arrayElement(categories);
       const brand = faker.helpers.arrayElement(brands);
 
-      const name = `${brand.name} ${category.name} ${faker.helpers.arrayElement([
-        "Pro",
-        "Elite",
-        "X",
-        "Superfly",
-        "Phantom",
-        "Mercurial",
-      ])}`;
+      const name = `${brand.name} ${category.name} ${faker.helpers.arrayElement(
+        ["Pro", "Elite", "X", "Superfly", "Phantom", "Mercurial"]
+      )}`;
 
       const basePrice = faker.number.int({ min: 400000, max: 3500000 });
 
@@ -152,7 +170,8 @@ async function seedDatabase() {
         description: getFootballDescription(category.name),
         basePrice,
         sales: faker.number.int({ min: 0, max: 200 }),
-        discountPercent: Math.random() > 0.5 ? faker.number.int({ min: 5, max: 30 }) : 0,
+        discountPercent:
+          Math.random() > 0.5 ? faker.number.int({ min: 5, max: 30 }) : 0,
       });
 
       products.push(product);
@@ -200,6 +219,35 @@ async function seedDatabase() {
 
     await ProductImage.insertMany(images);
     console.log(`🖼️ Inserted ${images.length} product images`);
+
+    const targetEmail = "ngophuctan1407@gmail.com";
+
+    const user = await User.findOne({ email: targetEmail });
+    if (!user) {
+      console.log(`⚠️ No user found with email: ${targetEmail}`);
+    } else {
+      const cart = await Cart.findOne({ userId: user._id });
+
+      if (!cart) {
+        console.log(`⚠️ No cart found for user: ${targetEmail}`);
+      } else {
+        console.log(`🛒 Found cart for user: ${targetEmail}`);
+
+        const allVariants = await ProductVariant.find({});
+        const chosenVariants = faker.helpers.arrayElements(allVariants, 5);
+
+        const cartItems = chosenVariants.map((variant) => ({
+          cart_id: cart._id,
+          product_variant_id: variant._id,
+          quantity: faker.number.int({ min: 1, max: 3 }),
+        }));
+
+        await CartItem.insertMany(cartItems);
+        console.log(
+          `🧺 Inserted ${cartItems.length} cart items for ${targetEmail}`
+        );
+      }
+    }
 
     console.log("✅ Database seeded successfully with football-themed data!");
   } catch (error) {

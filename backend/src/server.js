@@ -4,19 +4,21 @@ import cors from "cors";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 
-import authRoutes from "./routes/authRoute.js";
-import userRoutes from "./routes/userRoute.js";
-import brandRoutes from "./routes/brandRoute.js";
-import categoryRoutes from "./routes/categoryRoute.js";
-import productRoutes from "./routes/productRoute.js";
-import addressRoutes from "./routes/addressRoute.js";
-import productImageRoutes from "./routes/productImageRoute.js";
-import productVariantRoutes from "./routes/productVariantRoute.js";
+import authRoutes from "./routes/authRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import brandRoutes from "./routes/brandRoutes.js";
+import categoryRoutes from "./routes/categoryRoutes.js";
+import productRoutes from "./routes/productRoutes.js";
+import addressRoutes from "./routes/addressRoutes.js";
+import productImageRoutes from "./routes/productImageRoutes.js";
+import productVariantRoutes from "./routes/productVariantRoutes.js";
 
-import cartRoutes from "./routes/cartRoute.js";
-import cartItemRoutes from "./routes/cartItemRoute.js";
-import orderRoutes from "./routes/orderRoute.js";
-import orderItemRoutes from "./routes/orderItemRoute.js";
+import cartRoutes from "./routes/cartRoutes.js";
+import cartItemRoutes from "./routes/cartItemRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
+import orderItemRoutes from "./routes/orderItemRoutes.js";
+
+import paymentRoutes from "./routes/paymentRoutes.js";
 
 import connectDB from "./config/db.js";
 import passport from "./config/passport.js";
@@ -37,7 +39,6 @@ app.use(
 app.use(cookieParser());
 app.use(morgan("dev"));
 
-app.get("/", (req, res) => res.send("Hello"));
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/addresses", addressRoutes);
@@ -52,8 +53,10 @@ app.use("/api/product-variants", productVariantRoutes);
 app.use("/api/carts", cartRoutes);
 app.use("/api/cart-items", cartItemRoutes);
 
-app.use("/api/ordres", orderRoutes);
+app.use("/api/orders", orderRoutes);
 app.use("/api/order-items", orderItemRoutes);
+
+app.use("/api/payments/vnpay", paymentRoutes);
 
 connectDB().then(() => {
   const PORT = process.env.PORT || 3000;

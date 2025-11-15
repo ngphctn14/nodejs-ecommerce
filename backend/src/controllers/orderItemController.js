@@ -1,15 +1,44 @@
 import OrderItem from "../models/orderItemModel.js";
+import ProductImage from "../models/productImageModel.js";
 
 export const getOrderItemsByOrderId = async (req, res) => {
   try {
     const { orderId } = req.params;
-    const items = await OrderItem.find({ order_id: orderId });
+
+    const items = await OrderItem.find({ order_id: orderId }).populate({
+      path: "product_variant_id",
+      model: "ProductVariant",
+      populate: {
+        path: "productId",
+        model: "Product",
+        select: "name",
+      },
+    });
 
     if (!items || items.length === 0) {
-      return res.status(404).json({ message: "Không tìm thấy sản phẩm trong đơn hàng" });
+      return res
+        .status(404)
+        .json({ message: "Không tìm thấy sản phẩm trong đơn hàng" });
     }
 
-    res.json(items);
+    const itemsWithImages = await Promise.all(
+      items.map(async (item) => {
+        const variantId = item.product_variant_id?._id;
+        const productId = item.product_variant_id?.productId?._id;
+
+        let image = await ProductImage.findOne({ productVariantId: variantId });
+        if (!image && productId) {
+          image = await ProductImage.findOne({ productId });
+        }
+
+        return {
+          ...item.toObject(),
+          image: image ? image.url : null,
+        };
+      })
+    );
+
+    res.json(itemsWithImages);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -27,7 +56,9 @@ export const createOrderItem = async (req, res) => {
 
 export const updateOrderItem = async (req, res) => {
   try {
-    const item = await OrderItem.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const item = await OrderItem.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
     if (!item) return res.status(404).json({ message: "OrderItem not found" });
     res.json(item);
   } catch (err) {

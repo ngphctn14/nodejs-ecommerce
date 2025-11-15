@@ -13,6 +13,8 @@ import Checkout from "../pages/Checkout";
 import VerifyEmail from "../pages/VerifyEmail";
 import CategoryPage from "../pages/Products/CategoryPage"
 import BrandPage from "../pages/Products/BrandPage"
+import PaymentFailed from "../pages/PaymentFailed";
+import OrderSuccess from "../pages/OrderSuccess";
 import ProductDetailPage from "../pages/Products/ProductDetailPage"; 
 
 function App() {
@@ -35,7 +37,8 @@ function App() {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
 
-
+        <Route path="/payment-failed" element={<PaymentFailed />} />
+        <Route path="/order-success/:orderId" element={<OrderSuccess />} />
 
         <Route path="*" element={<Error />} />
       </Routes>

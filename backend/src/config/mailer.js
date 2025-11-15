@@ -25,4 +25,14 @@ export const sendVerificationEmail = async (user, token) => {
       <a href="${verifyUrl}">${verifyUrl}</a>
     `,
   });
-}
+};
+
+export const sendPasswordRecoveryEmail = async (user, ) => {
+
+};
+
+export const sendOrderNotificationEmail = async (user, order) => {
+  await transporter.sendMail({
+    from: ``
+  })
+};

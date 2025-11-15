@@ -2,7 +2,17 @@ import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import axiosClient from "../../api/axiosClient";
 
-const AddressManager = () => {
+import PhoneNumberField from "../Address/PhoneNumberField";
+import ProvinceSelect from "../Address/ProvinceSelect";
+import WardSelect from "../Address/WardSelect";
+import AddressLineInput from "../Address/AddressLineInput";
+import DefaultCheckbox from "../Address/DefaultCheckbox";
+
+const AddressManager = ({
+  prefilledAddress = null,
+  onClose = null,
+  showList = true,
+}) => {
   const [addresses, setAddresses] = useState([]);
   const [formData, setFormData] = useState({
     id: null,
@@ -18,6 +28,7 @@ const AddressManager = () => {
   const [rawAddressData, setRawAddressData] = useState(null);
   const [error, setError] = useState(null);
 
+  // 🗺️ Load provinces and address data
   useEffect(() => {
     fetch("/data/vn_only_simplified_json_generated_data_vn_units.json")
       .then((res) => {
@@ -25,28 +36,30 @@ const AddressManager = () => {
         return res.json();
       })
       .then((data) => {
-        const formattedProvinces = data.map((prov) => prov.FullName);
-        setProvinces(formattedProvinces);
         setRawAddressData(data);
+        setProvinces(data.map((prov) => prov.FullName));
       })
       .catch((err) => {
         console.error("Lỗi tải dữ liệu địa chỉ:", err);
         setError("Không thể tải dữ liệu địa chỉ");
       });
 
-    // Tải danh sách địa chỉ từ API
-    const fetchAddresses = async () => {
-      try {
-        const response = await axiosClient.get("/addresses");
-        setAddresses(response.data);
-      } catch (error) {
-        console.error("Lỗi khi gọi API lấy địa chỉ:", error);
-        setError("Không thể tải danh sách địa chỉ");
-      }
-    };
-    fetchAddresses();
-  }, []);
+    if (showList) {
+      // only fetch addresses when showing the list (Profile page)
+      const fetchAddresses = async () => {
+        try {
+          const response = await axiosClient.get("/addresses");
+          setAddresses(response.data);
+        } catch (error) {
+          console.error("Lỗi khi gọi API lấy địa chỉ:", error);
+          setError("Không thể tải danh sách địa chỉ");
+        }
+      };
+      fetchAddresses();
+    }
+  }, [showList]);
 
+  // 🧭 When province changes, update wards
   useEffect(() => {
     if (formData.province && rawAddressData) {
       const rawProvince = rawAddressData.find(
@@ -55,67 +68,78 @@ const AddressManager = () => {
       const formattedWards =
         rawProvince?.Wards.map((ward) => ward.FullName) || [];
       setWards(formattedWards);
-      if (!isEditing) {
-        setFormData((prev) => ({ ...prev, ward: "" }));
-      }
     } else {
       setWards([]);
-      if (!isEditing) {
-        setFormData((prev) => ({ ...prev, ward: "" }));
-      }
     }
-  }, [formData.province, rawAddressData, isEditing]);
+  }, [formData.province, rawAddressData]);
+
+  // ✨ Pre-fill form when editing (in modal or profile)
+  useEffect(() => {
+    if (prefilledAddress) {
+      setFormData({
+        id: prefilledAddress._id,
+        phoneNumber: prefilledAddress.phoneNumber || "",
+        province: prefilledAddress.province || "",
+        ward: prefilledAddress.ward || "",
+        addressLine: prefilledAddress.addressLine || "",
+        isDefault: prefilledAddress.isDefault || false,
+      });
+      setIsEditing(true);
+    }
+  }, [prefilledAddress]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({ ...formData, [name]: type === "checkbox" ? checked : value });
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
   const handleSelectChange = (name) => (selectedOption) => {
-    setFormData({
-      ...formData,
-      [name]: selectedOption ? selectedOption.value : "",
+    const value = selectedOption ? selectedOption.value : "";
+
+    setFormData((prev) => {
+      if (name === "province") {
+        return {
+          ...prev,
+          province: value,
+          ward: "",
+        };
+      }
+
+      return {
+        ...prev,
+        [name]: value,
+      };
     });
   };
 
+  // 💾 Add or Update Address
   const handleAddOrUpdate = async (e) => {
     e.preventDefault();
     setError(null);
 
-    const newAddress = { ...formData };
+    const payload = { ...formData };
 
     try {
       let response;
 
-      if (isEditing) {
-        response = await axiosClient.put(
-          `/addresses/${formData.id}`,
-          newAddress
-        );
-        const updated = response.data;
-
-        setAddresses((prev) =>
-          prev.map((addr) =>
-            addr._id === formData.id
-              ? updated
-              : updated.isDefault
-              ? { ...addr, isDefault: false }
-              : addr
-          )
-        );
-
-        setIsEditing(false);
+      if (isEditing && formData.id) {
+        response = await axiosClient.put(`/addresses/${formData.id}`, payload);
       } else {
-        response = await axiosClient.post("/addresses", newAddress);
-        const created = response.data;
+        response = await axiosClient.post("/addresses", payload);
+      }
 
-        setAddresses((prev) =>
-          created.isDefault
-            ? prev
-                .map((addr) => ({ ...addr, isDefault: false }))
-                .concat(created)
-            : [...prev, created]
-        );
+      const updatedList = await axiosClient.get("/addresses");
+
+      // 🔁 Refresh parent (modal close) if callback provided
+      if (onClose) {
+        onClose(updatedList.data);
+      }
+
+      if (showList) {
+        setAddresses(updatedList.data);
       }
 
       setFormData({
@@ -126,6 +150,7 @@ const AddressManager = () => {
         addressLine: "",
         isDefault: false,
       });
+      setIsEditing(false);
     } catch (error) {
       console.error("Lỗi khi lưu địa chỉ:", error);
       setError("Không thể lưu địa chỉ. Vui lòng thử lại.");
@@ -142,22 +167,12 @@ const AddressManager = () => {
       isDefault: address.isDefault,
     });
     setIsEditing(true);
-    setError(null);
-    if (address.province && rawAddressData) {
-      const rawProvince = rawAddressData.find(
-        (prov) => prov.FullName === address.province
-      );
-      const formattedWards =
-        rawProvince?.Wards.map((ward) => ward.FullName) || [];
-      setWards(formattedWards);
-    }
   };
 
   const handleDelete = async (id) => {
-    setError(null);
     try {
       await axiosClient.delete(`/addresses/${id}`);
-      setAddresses(addresses.filter((addr) => addr._id !== id));
+      setAddresses((prev) => prev.filter((addr) => addr._id !== id));
     } catch (error) {
       console.error("Lỗi khi xóa địa chỉ:", error);
       setError("Không thể xóa địa chỉ. Vui lòng thử lại.");
@@ -165,11 +180,10 @@ const AddressManager = () => {
   };
 
   const handleSetDefault = async (id) => {
-    setError(null);
     try {
       await axiosClient.put(`/addresses/${id}/set-default`);
-      setAddresses(
-        addresses.map((addr) => ({ ...addr, isDefault: addr._id === id }))
+      setAddresses((prev) =>
+        prev.map((addr) => ({ ...addr, isDefault: addr._id === id }))
       );
     } catch (error) {
       console.error("Lỗi khi đặt địa chỉ mặc định:", error);
@@ -187,10 +201,10 @@ const AddressManager = () => {
       isDefault: false,
     });
     setIsEditing(false);
-    setWards([]);
     setError(null);
   };
 
+  // 🪄 Custom select styles
   const customStyles = {
     control: (provided) => ({
       ...provided,
@@ -198,13 +212,7 @@ const AddressManager = () => {
       borderRadius: "0.375rem",
       padding: "0.5rem",
       boxShadow: "none",
-      "&:hover": {
-        borderColor: "#3b82f6",
-      },
-      "&:focus": {
-        borderColor: "#3b82f6",
-        boxShadow: "0 0 0 2px rgba(59, 130, 246, 0.5)",
-      },
+      "&:hover": { borderColor: "#3b82f6" },
     }),
     option: (provided, state) => ({
       ...provided,
@@ -214,111 +222,44 @@ const AddressManager = () => {
         ? "#e5e7eb"
         : "white",
       color: state.isSelected ? "white" : "#374151",
-      "&:hover": {
-        backgroundColor: "#e5e7eb",
-      },
     }),
-    menu: (provided) => ({
-      ...provided,
-      borderRadius: "0.375rem",
-      zIndex: 20,
-    }),
+    menu: (provided) => ({ ...provided, borderRadius: "0.375rem", zIndex: 20 }),
   };
 
   const isStreetDisabled = !formData.province || !formData.ward;
 
   return (
-    <div className="bg-white shadow-lg rounded-lg p-6 max-w-2xl mx-auto">
+    <div className="bg-white rounded-lg p-6 max-w-2xl mx-auto">
       {error && <p className="text-red-500 mb-4">{error}</p>}
+
+      {/* FORM */}
       <form onSubmit={handleAddOrUpdate} className="space-y-4 mb-8">
-        <div>
-          <label className="block text-gray-700 font-medium">
-            Số điện thoại
-          </label>
-          <input
-            type="text"
-            name="phoneNumber"
-            value={formData.phoneNumber}
-            onChange={handleInputChange}
-            className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Nhập số điện thoại"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-gray-700 font-medium">
-            Tỉnh/Thành phố
-          </label>
-          <Select
-            name="province"
-            value={
-              provinces.find((p) => p === formData.province)
-                ? { value: formData.province, label: formData.province }
-                : null
-            }
-            onChange={handleSelectChange("province")}
-            options={provinces.map((p) => ({ value: p, label: p }))}
-            isSearchable
-            placeholder="-- Chọn tỉnh/thành phố --"
-            styles={customStyles}
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-gray-700 font-medium">Phường/Xã</label>
-          <Select
-            name="ward"
-            value={
-              wards.find((w) => w === formData.ward)
-                ? { value: formData.ward, label: formData.ward }
-                : null
-            }
-            onChange={handleSelectChange("ward")}
-            options={wards.map((w) => ({ value: w, label: w }))}
-            isSearchable
-            placeholder="-- Chọn phường/xã --"
-            isDisabled={!formData.province}
-            styles={customStyles}
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-gray-700 font-medium">
-            Số nhà, tên đường
-          </label>
-          <input
-            type="text"
-            name="addressLine"
-            value={formData.addressLine}
-            onChange={handleInputChange}
-            className={`w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              isStreetDisabled ? "bg-gray-100 cursor-not-allowed" : ""
-            }`}
-            placeholder="Nhập số nhà, tên đường"
-            disabled={isStreetDisabled}
-            required
-          />
-          {isStreetDisabled && (
-            <p className="text-sm text-gray-500 mt-1">
-              Vui lòng chọn tỉnh/thành phố và phường/xã trước khi nhập số nhà,
-              tên đường.
-            </p>
-          )}
-        </div>
-
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            name="isDefault"
-            checked={formData.isDefault}
-            onChange={handleInputChange}
-            className="h-4 w-4 text-blue-500 focus:ring-blue-500 border-gray-300 rounded"
-          />
-          <label className="ml-2 text-gray-700">Đặt làm địa chỉ mặc định</label>
-        </div>
+        <PhoneNumberField
+          value={formData.phoneNumber}
+          onChange={handleInputChange}
+        />
+        <ProvinceSelect
+          value={formData.province}
+          options={provinces}
+          onChange={handleSelectChange("province")}
+          styles={customStyles}
+        />
+        <WardSelect
+          value={formData.ward}
+          options={wards}
+          onChange={handleSelectChange("ward")}
+          disabled={!formData.province}
+          styles={customStyles}
+        />
+        <AddressLineInput
+          value={formData.addressLine}
+          onChange={handleInputChange}
+          disabled={isStreetDisabled}
+        />
+        <DefaultCheckbox
+          checked={formData.isDefault}
+          onChange={handleInputChange}
+        />
 
         <div className="flex space-x-2">
           <button
@@ -339,51 +280,56 @@ const AddressManager = () => {
         </div>
       </form>
 
-      <div className="space-y-4">
-        {addresses.map((addr) => (
-          <div
-            key={addr._id}
-            className="flex justify-between items-center p-4 border rounded-md bg-gray-50"
-          >
-            <div>
-              <p className="font-medium text-gray-800">
-                {addr.phoneNumber}{" "}
-                {addr.isDefault && (
-                  <span>
-                    {" "}
-                    - <span className="text-green-500 text-sm">[Mặc định]</span>
-                  </span>
-                )}
-              </p>
-              <p className="text-gray-600">
-                {addr.addressLine}, {addr.ward}, {addr.province}
-              </p>
-            </div>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => handleEdit(addr)}
-                className="text-blue-500 hover:text-blue-700"
-              >
-                Sửa
-              </button>
-              <button
-                onClick={() => handleDelete(addr._id)}
-                className="text-red-500 hover:text-red-700"
-              >
-                Xóa
-              </button>
-              {!addr.isDefault && (
+      {/* LIST OF ADDRESSES (only in Profile) */}
+      {showList && (
+        <div className="space-y-4">
+          {addresses.map((addr) => (
+            <div
+              key={addr._id}
+              className="flex justify-between items-center p-4 border rounded-md bg-gray-50"
+            >
+              <div>
+                <p className="font-medium text-gray-800">
+                  {addr.phoneNumber}{" "}
+                  {addr.isDefault && (
+                    <span className="text-green-500 text-sm ml-1">
+                      [Mặc định]
+                    </span>
+                  )}
+                </p>
+                <p className="text-gray-600">
+                  {addr.addressLine}, {addr.ward}, {addr.province}
+                </p>
+              </div>
+              <div className="flex space-x-2">
                 <button
-                  onClick={() => handleSetDefault(addr._id)}
-                  className="text-gray-500 hover:text-gray-700"
+                  type="button"
+                  onClick={() => handleEdit(addr)}
+                  className="text-blue-500 hover:text-blue-700"
                 >
-                  Đặt mặc định
+                  Sửa
                 </button>
-              )}
+                <button
+                  type="button"
+                  onClick={() => handleDelete(addr._id)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  Xóa
+                </button>
+                {!addr.isDefault && (
+                  <button
+                    type="button"
+                    onClick={() => handleSetDefault(addr._id)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    Đặt mặc định
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
