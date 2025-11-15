@@ -15,6 +15,7 @@ import CategoryPage from "../pages/Products/CategoryPage"
 import BrandPage from "../pages/Products/BrandPage"
 import PaymentFailed from "../pages/PaymentFailed";
 import OrderSuccess from "../pages/OrderSuccess";
+import ProductDetailPage from "../pages/Products/ProductDetailPage"; 
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/products" element={<Products />} />
+        <Route path="/product/:id" element={<ProductDetailPage />} />
 
         <Route path="/categories/:slug" element={<CategoryPage />} />
         <Route path="/brands/:slug" element={<BrandPage />} />

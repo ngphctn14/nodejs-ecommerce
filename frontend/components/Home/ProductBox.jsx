@@ -1,10 +1,17 @@
 import React from 'react';
+import { Link } from 'react-router-dom'; // Thêm import này
 
-const ProductBox = ({ name, price, oldPrice, salePercent, imageUrl }) => {
-  const parsedSalePercent = Number(salePercent);
+const ProductBox = ({ 
+  name, 
+  price, 
+  oldPrice, 
+  discountPercent, // sửa tên từ salePercent → discountPercent cho đúng với ProductsList
+  imageUrl,
+  _id // Nhận thêm _id từ props
+}) => {
+  const parsedSalePercent = Number(discountPercent || 0);
   const isOnSale = parsedSalePercent > 0 && oldPrice && oldPrice > price;
 
-  // Nếu không on sale thì set lại oldPrice và salePercent = null
   const displayOldPrice = isOnSale ? oldPrice : null;
   const displaySalePercent = isOnSale ? parsedSalePercent : null;
 
@@ -14,12 +21,15 @@ const ProductBox = ({ name, price, oldPrice, salePercent, imageUrl }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden w-64 hover:shadow-lg transition-shadow duration-300">
+    <Link 
+      to={`/product/${_id}`} 
+      className="block bg-white rounded-lg shadow-md overflow-hidden w-64 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+    >
       <div className="relative">
         <img src={imageUrl} alt={name} className="w-full h-48 object-cover" />
         {displaySalePercent && (
           <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-            {displaySalePercent}% OFF
+            -{displaySalePercent}%
           </span>
         )}
       </div>
@@ -35,11 +45,14 @@ const ProductBox = ({ name, price, oldPrice, salePercent, imageUrl }) => {
             </span>
           )}
         </div>
-        <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors duration-200">
-          Add to Cart
+        <button 
+          onClick={(e) => e.preventDefault()} // Ngăn nút submit khi click
+          className="mt-4 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors duration-200 pointer-events-none"
+        >
+          Xem chi tiết
         </button>
       </div>
-    </div>
+    </Link>
   );
 };
 
