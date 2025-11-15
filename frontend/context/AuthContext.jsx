@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
     const fetchUser = async () => {
       try {
         const res = await axiosClient.get("/auth/me");
-        console.log(res.data.user.cartId);
+        console.log(res.data.user._id);
         setUser(res.data.user);
         localStorage.setItem("user", JSON.stringify(res.data.user));
       } catch (err) {

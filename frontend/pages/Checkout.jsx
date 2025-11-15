@@ -15,6 +15,7 @@ const Checkout = () => {
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState({});
   const navigate = useNavigate();
@@ -49,7 +50,8 @@ const Checkout = () => {
 
         const res = await axiosClient.get(`/cart-items/${user.cartId}`);
         const formatted = res.data.map((item) => ({
-          id: item._id,
+          id: item._id, // This is cartItem._id
+          variantId: item.variant?._id, // <-- ADDED: Needed for creating order item
           name: item.product?.name || "Sản phẩm",
           size: item.variant?.attributes?.size || "Default",
           color: item.variant?.attributes?.color || "Default",
@@ -88,42 +90,131 @@ const Checkout = () => {
     setShowAddressForm(true);
   };
 
-  const handleContinueToPayment = () => {
-    alert("Chuyển sang bước thanh toán!");
-    navigate("/payment");
-  };
-
   const subtotal = cartItems.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0
   );
 
-  // 🔹 Loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen flex justify-center items-center">
-        <p>Đang tải giỏ hàng...</p>
-      </div>
-    );
-  }
+const handleCreateCashOrder = async () => {
+    if (!user) {
+      alert("Bạn phải đăng nhập để hoàn tất đơn hàng.");
+      navigate("/login");
+      return;
+    }
 
-  // 🔹 Empty cart
-  if (cartItems.length === 0) {
-    return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
-        <Navbar />
-        <div className="flex-grow flex flex-col items-center justify-center">
-          <p className="mb-4">Giỏ hàng của bạn còn trống</p>
-          <Button
-            textContent="Tiếp tục mua sắm"
-            onClick={() => navigate("/products")}
-            className="cursor-pointer"
-          />
-        </div>
-        <Footer />
-      </div>
-    );
-  }
+    setIsCreatingOrder(true);
+    try {
+      const orderData = {
+        user_id: user._id,
+        address_id: address._id,
+        total_price: subtotal,
+        status: "confirmed",
+        payment_method: "cash",
+        payment_status: "unpaid",
+      };
+      const orderRes = await axiosClient.post("/orders", orderData);
+      const newOrder = orderRes.data;
+
+      const orderItemPromises = cartItems.map((item) => {
+        return axiosClient.post("/order-items", {
+          order_id: newOrder._id,
+          product_variant_id: item.variantId,
+          quantity: item.quantity,
+          price: item.price,
+        });
+      });
+      await Promise.all(orderItemPromises);
+
+      // 3. Delete CartItems
+      const deleteCartItemPromises = cartItems.map((item) => {
+        return axiosClient.delete(`/cart-items/${item.id}`);
+      });
+      await Promise.all(deleteCartItemPromises);
+
+      // 4. Navigate
+      setCartItems([]);
+      alert("Đặt hàng thành công!");
+      navigate(`/order-success/${newOrder._id}`);
+    } catch (err) {
+      console.error("❌ Lỗi khi tạo đơn hàng Tiền Mặt:", err);
+      alert("Lỗi khi tạo đơn hàng: " + (err.response?.data?.message || err.message));
+    } finally {
+      setIsCreatingOrder(false);
+    }
+  };
+
+  const handleVNPayPayment = async () => {
+    if (!user) {
+      alert("Bạn phải đăng nhập để hoàn tất đơn hàng.");
+      navigate("/login");
+      return;
+    }
+
+    setIsCreatingOrder(true);
+    try {
+      const orderData = {
+        user_id: user._id,
+        address_id: address._id,
+        total_price: subtotal,
+        status: "pending",
+        payment_method: "vnpay",
+        payment_status: "unpaid",
+      };
+      const orderRes = await axiosClient.post("/orders", orderData);
+      const newOrder = orderRes.data;
+
+      const orderItemPromises = cartItems.map((item) => {
+        return axiosClient.post("/order-items", {
+          order_id: newOrder._id,
+          product_variant_id: item.variantId,
+          quantity: item.quantity,
+          price: item.price,
+        });
+      });
+      await Promise.all(orderItemPromises);
+
+      // const deleteCartItemPromises = cartItems.map((item) => {
+      //   return axiosClient.delete(`/cart-items/${item.id}`);
+      // });
+
+      // await Promise.all(deleteCartItemPromises);
+
+      const paymentRes = await axiosClient.post(
+        `/payments/vnpay/pay/${newOrder._id}`
+      );
+
+      if (paymentRes.data.paymentUrl) {
+        window.location.href = paymentRes.data.paymentUrl;
+      } else {
+        throw new Error("Không nhận được URL thanh toán từ máy chủ.");
+      }
+    } catch (err) {
+      console.error("Lỗi khi tạo đơn hàng VNPAY:", err);
+      alert("Lỗi khi tạo đơn VNPAY: " + (err.response?.data?.message || err.message));
+      setIsCreatingOrder(false);
+    }
+  };
+
+  const handleContinueToPayment = () => {
+    if (!address._id) {
+      alert("Vui lòng chọn hoặc thêm một địa chỉ giao hàng.");
+      return;
+    }
+    if (!address.paymentMethod) {
+      alert("Vui lòng chọn phương thức thanh toán.");
+      return;
+    }
+
+    // 2. Route based on payment method
+    // Sử dụng 'cash' và 'vnpay'
+    if (address.paymentMethod === "cash") {
+      handleCreateCashOrder();
+    } else if (address.paymentMethod === "vnpay") {
+      handleVNPayPayment();
+    } else {
+      alert("Phương thức thanh toán chưa được hỗ trợ.");
+    }
+  };
 
   // 🔹 Checkout UI
   return (
@@ -186,7 +277,6 @@ const Checkout = () => {
 
               <h2 className="text-lg font-semibold mb-4">Địa chỉ giao hàng</h2>
 
-              {/* List of user addresses */}
               <AddressList onSelect={(addr) => setAddress(addr)} />
 
               <div className="mt-6">
@@ -197,8 +287,8 @@ const Checkout = () => {
                     <input
                       type="radio"
                       name="paymentMethod"
-                      value="VNPay"
-                      checked={address.paymentMethod === "VNPay"}
+                      value="vnpay"
+                      checked={address.paymentMethod === "vnpay"}
                       onChange={(e) =>
                         setAddress({
                           ...address,
@@ -214,8 +304,8 @@ const Checkout = () => {
                     <input
                       type="radio"
                       name="paymentMethod"
-                      value="TienMat"
-                      checked={address.paymentMethod === "TienMat"}
+                      value="cash"
+                      checked={address.paymentMethod === "cash"}
                       onChange={(e) =>
                         setAddress({
                           ...address,
@@ -230,9 +320,14 @@ const Checkout = () => {
               </div>
 
               <Button
-                textContent="Tiếp tục đến thanh toán"
+                textContent={
+                  isCreatingOrder
+                    ? "Đang xử lý..."
+                    : "Tiếp tục đến thanh toán"
+                }
                 onClick={handleContinueToPayment}
                 className="mt-6 w-full cursor-pointer"
+                disabled={isCreatingOrder}
               />
             </>
           )}

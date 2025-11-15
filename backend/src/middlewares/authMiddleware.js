@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
+import Cart from "../models/cartModel.js";
 
-export const authenticateUser = (req, res, next) => {
+export const authenticateUser = async (req, res, next) => {
   try {
     const token = req.cookies?.accessToken;
 
@@ -9,6 +10,8 @@ export const authenticateUser = (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_KEY);
+    const cart = await Cart.findOne({ userId: decoded.id });
+    decoded.cartId = `${cart._id}`;
     req.user = decoded;
 
     next();

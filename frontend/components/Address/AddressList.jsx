@@ -12,9 +12,16 @@ const AddressList = ({ onSelect }) => {
     const fetchAddresses = async () => {
       try {
         const res = await axiosClient.get("/addresses");
-        setAddresses(res.data);
-        const defaultAddr = res.data.find((a) => a.isDefault);
-        if (defaultAddr) setSelectedAddressId(defaultAddr._id);
+        const allAddresses = res.data;
+        setAddresses(allAddresses);
+        if (allAddresses.length > 0) {
+          const defaultAddress =
+            allAddresses.find((addr) => addr.isDefault) || allAddresses[0];
+
+          onSelect(defaultAddress);
+
+          setSelectedAddressId(defaultAddress._id);
+        }
       } catch (err) {
         console.error("Lỗi tải địa chỉ:", err);
       }

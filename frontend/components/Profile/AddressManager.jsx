@@ -8,7 +8,11 @@ import WardSelect from "../Address/WardSelect";
 import AddressLineInput from "../Address/AddressLineInput";
 import DefaultCheckbox from "../Address/DefaultCheckbox";
 
-const AddressManager = ({ prefilledAddress = null, onClose = null, showList = true }) => {
+const AddressManager = ({
+  prefilledAddress = null,
+  onClose = null,
+  showList = true,
+}) => {
   const [addresses, setAddresses] = useState([]);
   const [formData, setFormData] = useState({
     id: null,
@@ -61,7 +65,8 @@ const AddressManager = ({ prefilledAddress = null, onClose = null, showList = tr
       const rawProvince = rawAddressData.find(
         (prov) => prov.FullName === formData.province
       );
-      const formattedWards = rawProvince?.Wards.map((ward) => ward.FullName) || [];
+      const formattedWards =
+        rawProvince?.Wards.map((ward) => ward.FullName) || [];
       setWards(formattedWards);
     } else {
       setWards([]);
@@ -83,17 +88,31 @@ const AddressManager = ({ prefilledAddress = null, onClose = null, showList = tr
     }
   }, [prefilledAddress]);
 
-  // 📝 Handle form input
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
   const handleSelectChange = (name) => (selectedOption) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: selectedOption ? selectedOption.value : "",
-    }));
+    const value = selectedOption ? selectedOption.value : "";
+
+    setFormData((prev) => {
+      if (name === "province") {
+        return {
+          ...prev,
+          province: value,
+          ward: "",
+        };
+      }
+
+      return {
+        ...prev,
+        [name]: value,
+      };
+    });
   };
 
   // 💾 Add or Update Address
@@ -215,7 +234,10 @@ const AddressManager = ({ prefilledAddress = null, onClose = null, showList = tr
 
       {/* FORM */}
       <form onSubmit={handleAddOrUpdate} className="space-y-4 mb-8">
-        <PhoneNumberField value={formData.phoneNumber} onChange={handleInputChange} />
+        <PhoneNumberField
+          value={formData.phoneNumber}
+          onChange={handleInputChange}
+        />
         <ProvinceSelect
           value={formData.province}
           options={provinces}
@@ -234,7 +256,10 @@ const AddressManager = ({ prefilledAddress = null, onClose = null, showList = tr
           onChange={handleInputChange}
           disabled={isStreetDisabled}
         />
-        <DefaultCheckbox checked={formData.isDefault} onChange={handleInputChange} />
+        <DefaultCheckbox
+          checked={formData.isDefault}
+          onChange={handleInputChange}
+        />
 
         <div className="flex space-x-2">
           <button
@@ -267,7 +292,9 @@ const AddressManager = ({ prefilledAddress = null, onClose = null, showList = tr
                 <p className="font-medium text-gray-800">
                   {addr.phoneNumber}{" "}
                   {addr.isDefault && (
-                    <span className="text-green-500 text-sm ml-1">[Mặc định]</span>
+                    <span className="text-green-500 text-sm ml-1">
+                      [Mặc định]
+                    </span>
                   )}
                 </p>
                 <p className="text-gray-600">

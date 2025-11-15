@@ -31,9 +31,18 @@ const orderSchema = new Schema(
       type: Number,
       default: 0,
     },
+    payment_method: {
+      type: String,
+      enum: ["cash", "vnpay"],
+    },
+    payment_status: {
+      type: String,
+      enum: ["unpaid", "paid", "refunded"],
+      default: "unpaid",
+    },
     status: {
       type: String,
-      enum: ["pending", "confirmed", "shipping", "delivered"],
+      enum: ["pending", "confirmed", "shipping", "delivered", "cancelled"], // I added 'cancelled'
       default: "pending",
     },
   },
