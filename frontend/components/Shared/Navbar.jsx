@@ -50,7 +50,7 @@ const Navbar = () => {
         setIsLoggedIn(false);
         const localCart = JSON.parse(localStorage.getItem("cart")) || [];
         const totalQuantity = localCart.reduce(
-          (total, item) => total + item.quantity,
+          (total) => total + 1,
           0
         );
         setCartItemAmount(totalQuantity);

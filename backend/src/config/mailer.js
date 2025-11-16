@@ -27,12 +27,30 @@ export const sendVerificationEmail = async (user, token) => {
   });
 };
 
-export const sendPasswordRecoveryEmail = async (user, ) => {
-
+export const sendGuestUserEmail = async (isGuest) => {
+  if (isGuest) {
+    await transporter.sendMail({
+      from: `"E-Shop" <${process.env.FROM_EMAIL}>`,
+      to: user.email,
+      subject: "",
+    });
+  } else {
+    await transporter.sendMail({
+      from: `"E-Shop" <${process.env.FROM_EMAIL}>`,
+      to: user.email,
+      subject: "",
+    });
+  }
 };
+
+export const sendPasswordRecoveryEmail = async (user) => {};
 
 export const sendOrderNotificationEmail = async (user, order) => {
   await transporter.sendMail({
-    from: ``
-  })
+    from: `"E-Shop" <${process.env.FROM_EMAIL}>`,
+    to: user.email,
+    subject: "Xác nhận đơn hàng",
+    html: `
+    `
+  });
 };

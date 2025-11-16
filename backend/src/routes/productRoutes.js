@@ -1,7 +1,7 @@
 import express from "express";
 import {
   getProducts,
-  getProduct,
+  getProductDetails,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -15,7 +15,7 @@ import { getProductImagesByProductId } from "../controllers/productImageControll
 const router = express.Router();
 
 router.get("/", getProducts);
-router.get("/:id", getProduct);
+router.get("/:id", getProductDetails);
 router.get("/brand/:slug", getProductsByBrand);
 router.get("/category/:slug", getProductsByCategory);
 router.get("/:productId/variants", getProductVariantsByProductId);

@@ -7,10 +7,11 @@ import {
   increaseQuantity,
   decreaseQuantity,
 } from "../controllers/cartItemController.js";
+import { authenticateUser } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 router.get("/:cartId", getCartItemsByCartId);
-router.post("/", createCartItem);
+router.post("/", authenticateUser, createCartItem);
 router.put("/:id", updateCartItem);
 router.put("/:id/increase", increaseQuantity);
 router.put("/:id/decrease", decreaseQuantity);
