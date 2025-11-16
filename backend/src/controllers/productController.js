@@ -2,6 +2,8 @@ import Product from "../models/productModel.js";
 import Brand from "../models/brandModel.js";
 import Category from "../models/categoryModel.js";
 
+import mongoose from "mongoose";
+
 export const getProducts = async (req, res) => {
   try {
     const products = await Product.aggregate([
@@ -142,19 +144,97 @@ export const getProductsByBrand = async (req, res) => {
   }
 };
 
-export const getProduct = async (req, res) => {
+export const getProductDetails = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const { id } = req.params;
 
-    if (!product) {
-      return res.status(404).json({message: "Không tìm thấy sản phẩm"});
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "ID sản phẩm không hợp lệ" });
     }
 
-    res.json(product);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    const aggregationPipeline = [
+      {
+        $match: { _id: new mongoose.Types.ObjectId(id) },
+      },
+      {
+        $lookup: {
+          from: "brands", 
+          localField: "brandId",
+          foreignField: "_id",
+          as: "brandDetails",
+        },
+      },
+      {
+        $unwind: { path: "$brandDetails", preserveNullAndEmptyArrays: true },
+      },
+      {
+        $lookup: {
+          from: "productvariants",
+          localField: "_id",
+          foreignField: "productId",
+          as: "variants",
+        },
+      },
+      {
+        $lookup: {
+          from: "productimages",
+          localField: "_id",
+          foreignField: "productId",
+          as: "images",
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          description: 1,
+          originalPrice: "$basePrice",
+          discountPercent: 1,
+          brand: "$brandDetails.name",
+          images: "$images.url",
+          variants: {
+            $map: {
+              input: "$variants",
+              as: "v",
+              in: {
+                _id: "$$v._id",
+                sku: "$$v.sku",
+                price: "$$v.price",
+                stock: "$$v.stock", 
+                size: "$$v.attributes.size",
+                color: "$$v.attributes.color",
+              },
+            },
+          },
+        },
+      },
+    ];
+
+    const productArray = await Product.aggregate(aggregationPipeline);
+
+    if (!productArray.length) {
+      return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
+    }
+
+    const product = productArray[0];
+    const finalPrice = Math.round(
+      product.originalPrice * (1 - product.discountPercent / 100)
+    );
+
+    const formattedProduct = {
+      ...product,
+      basePrice: finalPrice,
+      oldPrice: product.originalPrice,
+    };
+    delete formattedProduct.originalPrice; 
+
+    res.json(formattedProduct);
+
+  } catch (err) {
+    console.error("Lỗi khi lấy chi tiết sản phẩm:", err);
+    res.status(500).json({ message: "Lỗi máy chủ" });
   }
-}
+};
 
 export const createProduct = async (req, res) => {
   try {

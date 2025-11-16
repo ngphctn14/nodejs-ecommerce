@@ -1,4 +1,5 @@
 import CartItem from "../models/cartItemModel.js";
+import Cart from "../models/cartModel.js";
 import ProductVariant from "../models/productVariantModel.js";
 import mongoose from "mongoose";
 
@@ -76,9 +77,50 @@ export const getCartItemsByCartId = async (req, res) => {
 
 export const createCartItem = async (req, res) => {
   try {
-    const item = new CartItem(req.body);
-    await item.save();
-    res.status(201).json(item);
+    const { product_variant_id, quantity } = req.body;
+    
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: "Vui lòng đăng nhập" });
+    }
+    const cart = await Cart.findOne({ userId: req.user.id });
+    if (!cart) {
+      return res.status(404).json({ message: "Không tìm thấy giỏ hàng" });
+    }
+
+    const variant = await ProductVariant.findById(product_variant_id);
+    if (!variant) {
+      return res.status(404).json({ message: "Không tìm thấy biến thể sản phẩm" });
+    }
+    
+    let existingItem = await CartItem.findOne({
+      cart_id: cart._id,
+      product_variant_id: product_variant_id,
+    });
+
+    let totalQuantity = quantity;
+    if (existingItem) {
+      totalQuantity += existingItem.quantity;
+    }
+
+    if (totalQuantity > variant.stock) {
+      return res.status(400).json({ 
+        message: `Vượt quá số lượng tồn kho. Chỉ còn ${variant.stock} sản phẩm.` 
+      });
+    }
+
+    if (existingItem) {
+      existingItem.quantity = totalQuantity;
+      await existingItem.save();
+      res.status(200).json(existingItem);
+    } else {
+      const newItem = new CartItem({
+        cart_id: cart._id,
+        product_variant_id,
+        quantity,
+      });
+      await newItem.save();
+      res.status(201).json(newItem);
+    }
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

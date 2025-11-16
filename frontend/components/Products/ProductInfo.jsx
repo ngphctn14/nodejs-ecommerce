@@ -1,5 +1,7 @@
-import React, { useState } from "react";
-import { ShoppingCart, Check } from "lucide-react";
+import React, { useState, useContext } from "react"; // 👈 Thêm useContext
+import { ShoppingCart, Check, Loader2 } from "lucide-react"; // 👈 Thêm Loader2
+import { AuthContext } from "../../context/AuthContext"; // 👈 Thêm AuthContext
+import axiosClient from "../../api/axiosClient"; // 👈 Thêm axiosClient
 
 const ProductInfo = ({ product }) => {
   const {
@@ -10,32 +12,40 @@ const ProductInfo = ({ product }) => {
     basePrice,
     oldPrice,
     discountPercent,
-    images = [], 
+    images = [],
     variants = [],
   } = product;
 
-  const [selectedImage, setSelectedImage] = useState(images[0] || "/giaybongda.jpg");
+  const [selectedImage, setSelectedImage] = useState(
+    images[0] || "/giaybongda.jpg"
+  );
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [addedToCart, setAddedToCart] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+
+  const { user } = useContext(AuthContext);
 
   const availableSizes = [...new Set(variants.map((v) => v.size))];
 
-  const availableColors =
-    selectedSize
-      ? variants
-          .filter((v) => v.size === selectedSize)
-          .map((v) => ({ color: v.color, stock: v.stock }))
-      : [];
+  const availableColors = selectedSize
+    ? variants
+        .filter((v) => v.size === selectedSize)
+        .map((v) => ({ color: v.color, stock: v.stock }))
+    : [];
 
   const selectedVariant = variants.find(
     (v) => v.size === selectedSize && v.color === selectedColor
   );
   const inStock = selectedVariant ? selectedVariant.stock > 0 : false;
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!selectedSize || !selectedColor) {
       alert("Vui lòng chọn kích thước và màu sắc!");
+      return;
+    }
+    if (!selectedVariant) {
+      alert("Lỗi: Không tìm thấy biến thể sản phẩm.");
       return;
     }
     if (!inStock) {
@@ -43,20 +53,57 @@ const ProductInfo = ({ product }) => {
       return;
     }
 
-    // TODO: Thêm vào giỏ hàng (context, redux, localStorage...)
-    console.log("Đã thêm vào giỏ:", { _id, selectedSize, selectedColor });
+    setIsAdding(true);
+    try {
+      if (user) {
+        await axiosClient.post("/cart-items", {
+          product_variant_id: selectedVariant._id,
+          quantity: 1,
+        });
+      } else {
+        const cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-    setAddedToCart(true);
-    setTimeout(() => setAddedToCart(false), 2000);
+        const existingItemIndex = cart.findIndex(
+          (item) => item.variantId === selectedVariant._id
+        );
+
+        if (existingItemIndex > -1) {
+          cart[existingItemIndex].quantity += 1;
+        } else {
+          const newItem = {
+            variantId: selectedVariant._id,
+            name: name,
+            size: selectedVariant.size,
+            color: selectedVariant.color,
+            price: selectedVariant.price,
+            quantity: 1,
+            image: images[0] || "/giaybongda.jpg",
+          };
+          cart.push(newItem);
+        }
+        localStorage.setItem("cart", JSON.stringify(cart));
+      }
+
+      setAddedToCart(true);
+      setTimeout(() => setAddedToCart(false), 2000);
+    } catch (err) {
+      console.error("Lỗi khi thêm vào giỏ hàng:", err);
+      alert(
+        "Lỗi: " +
+          (err.response?.data?.message ||
+            err.message ||
+            "Không thể thêm vào giỏ hàng.")
+      );
+    } finally {
+      setIsAdding(false);
+    }
   };
 
-  const formatPrice = (price) =>
-    price.toLocaleString("vi-VN") + " ₫";
+  const formatPrice = (price) => price.toLocaleString("vi-VN") + " ₫";
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        {/* Ảnh sản phẩm */}
         <div className="space-y-4">
           <div className="aspect-square overflow-hidden rounded-xl border">
             <img
@@ -66,7 +113,6 @@ const ProductInfo = ({ product }) => {
             />
           </div>
 
-          {/* Thumbnail */}
           {images.length > 1 && (
             <div className="grid grid-cols-4 gap-3">
               {images.map((img, idx) => (
@@ -74,10 +120,18 @@ const ProductInfo = ({ product }) => {
                   key={idx}
                   onClick={() => setSelectedImage(img)}
                   className={`aspect-square rounded-lg overflow-hidden border-2 transition-all
-                    ${selectedImage === img ? "border-blue-500" : "border-gray-200"}
+                    ${
+                      selectedImage === img
+                        ? "border-blue-500"
+                        : "border-gray-200"
+                    }
                   `}
                 >
-                  <img src={img} alt="" className="w-full h-full object-cover" />
+                  <img
+                    src={img}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
                 </button>
               ))}
             </div>
@@ -141,7 +195,10 @@ const ProductInfo = ({ product }) => {
           {selectedSize && (
             <div>
               <h3 className="font-semibold mb-3">
-                Màu sắc <span className="text-sm text-gray-500">(Size {selectedSize})</span>
+                Màu sắc{" "}
+                <span className="text-sm text-gray-500">
+                  (Size {selectedSize})
+                </span>
               </h3>
               <div className="flex gap-3 flex-wrap">
                 {availableColors.map(({ color, stock }) => (
@@ -168,14 +225,15 @@ const ProductInfo = ({ product }) => {
             </div>
           )}
 
-          {/* Nút thêm vào giỏ */}
           <button
             onClick={handleAddToCart}
-            disabled={!inStock || addedToCart}
+            disabled={!inStock || addedToCart || isAdding}
             className={`w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 transition-all
               ${
                 addedToCart
                   ? "bg-green-500 text-white"
+                  : isAdding
+                  ? "bg-blue-400 text-white cursor-wait"
                   : inStock
                   ? "bg-blue-600 text-white hover:bg-blue-700"
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -186,6 +244,11 @@ const ProductInfo = ({ product }) => {
               <>
                 <Check size={24} />
                 Đã thêm vào giỏ hàng!
+              </>
+            ) : isAdding ? (
+              <>
+                <Loader2 size={24} className="animate-spin" />
+                Đang thêm...
               </>
             ) : (
               <>

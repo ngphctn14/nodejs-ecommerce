@@ -10,6 +10,7 @@ const userSchema = new mongoose.Schema(
     addresses: { type: String },
     role: { type: String, enum: ["customer", "admin"], default: "customer" },
     provider: { type: String, default: "local" },
+    loyaltyPoints: { type: Number, required: true, min: 0 },
   },
   { timestamps: true }
 );
