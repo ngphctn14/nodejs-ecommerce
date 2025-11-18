@@ -1,10 +1,10 @@
 import express from "express";
+import { updateUserProfile, changeUserPassword } from "../controllers/userController.js";
 import { authenticateUser } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-router.get("/profile", authenticateUser, (req, res) => {
-  res.json({ message: "User profile", user: req.user });
-});
+router.put("/profile", authenticateUser, updateUserProfile);
+router.put("/change-password", authenticateUser, changeUserPassword);
 
 export default router;
