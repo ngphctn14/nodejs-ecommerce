@@ -1,4 +1,6 @@
 import Order from "../models/orderModel.js";
+import { sendOrderSuccessEmail } from "../config/mailer.js";
+import User from "../models/userModel.js";
 
 export const getOrders = async (req, res) => {
   try {
@@ -32,6 +34,7 @@ export const getOrdersByUserId = async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
     }
 
+
     res.json({
       orders,
       currentPage: page,
@@ -56,6 +59,11 @@ export const getOrder = async (req, res) => {
 export const createOrder = async (req, res) => {
   try {
     const order = new Order(req.body);
+
+    const user = await User.findById(order.user_id);
+
+    await sendOrderSuccessEmail(user, order);
+
     await order.save();
     res.status(201).json(order);
   } catch (err) {

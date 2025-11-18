@@ -18,6 +18,7 @@ const Checkout = () => {
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState({});
+  const [guestSubmitMessage, setGuestSubmitMessage] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -81,13 +82,54 @@ const Checkout = () => {
     }
   }, [cartItems, user, authLoading]);
 
+  const handleGuestCheckoutInit = async () => {
+    try {
+      setIsCreatingOrder(true);
+      setGuestSubmitMessage(null);
+
+      const localCart = JSON.parse(localStorage.getItem("cart")) || [];
+
+      if (localCart.length === 0) {
+        alert("Giỏ hàng của bạn đang trống!");
+        return;
+      }
+
+      // 1. Gọi backend để xử lý email và đồng bộ giỏ hàng
+      const res = await axiosClient.post("/auth/guest-checkout-init", {
+        email: email,
+        localCartItems: localCart, // Gửi giỏ hàng local lên
+      });
+
+      // 2. Hiển thị thông báo và chuyển trạng thái UI
+      setGuestSubmitMessage(res.data.message);
+      setShowAddressForm(true); // Vẫn chuyển sang step 2 để user thấy thông báo
+
+      // 3. Xóa giỏ hàng local để tránh bị trùng, vì nó đã được đồng bộ lên DB.
+      // localStorage.removeItem("cart"); // Tùy chọn: nên giữ lại đến khi user verify để an toàn hơn
+    } catch (err) {
+      console.error("Lỗi khởi tạo Guest Checkout:", err);
+      setGuestSubmitMessage(
+        err.response?.data?.message || "Lỗi không xác định khi gửi email."
+      );
+    } finally {
+      setIsCreatingOrder(false);
+    }
+  };
+
   // 🔹 Handle form steps
   const handleContinueToShipping = () => {
     if (!email) {
       alert("Vui lòng nhập email trước khi tiếp tục.");
       return;
     }
-    setShowAddressForm(true);
+
+    if (!isLoggedIn) {
+      // 🚨 Nếu là khách, xử lý flow Magic Link
+      handleGuestCheckoutInit();
+    } else {
+      // Nếu đã đăng nhập, chuyển sang bước địa chỉ (như cũ)
+      setShowAddressForm(true);
+    }
   };
 
   const subtotal = cartItems.reduce(
@@ -95,7 +137,7 @@ const Checkout = () => {
     0
   );
 
-const handleCreateCashOrder = async () => {
+  const handleCreateCashOrder = async () => {
     if (!user) {
       alert("Bạn phải đăng nhập để hoàn tất đơn hàng.");
       navigate("/login");
@@ -137,7 +179,9 @@ const handleCreateCashOrder = async () => {
       navigate(`/order-success/${newOrder._id}`);
     } catch (err) {
       console.error("❌ Lỗi khi tạo đơn hàng Tiền Mặt:", err);
-      alert("Lỗi khi tạo đơn hàng: " + (err.response?.data?.message || err.message));
+      alert(
+        "Lỗi khi tạo đơn hàng: " + (err.response?.data?.message || err.message)
+      );
     } finally {
       setIsCreatingOrder(false);
     }
@@ -190,7 +234,9 @@ const handleCreateCashOrder = async () => {
       }
     } catch (err) {
       console.error("Lỗi khi tạo đơn hàng VNPAY:", err);
-      alert("Lỗi khi tạo đơn VNPAY: " + (err.response?.data?.message || err.message));
+      alert(
+        "Lỗi khi tạo đơn VNPAY: " + (err.response?.data?.message || err.message)
+      );
       setIsCreatingOrder(false);
     }
   };
@@ -246,18 +292,28 @@ const handleCreateCashOrder = async () => {
                   placeholder="Nhập email của bạn"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={isCreatingOrder}
                 />
 
                 <Button
                   type="submit"
                   textContent="Tiếp tục đến giao hàng"
                   className="w-full cursor-pointer mt-4"
+                  disabled={isCreatingOrder}
                 />
               </form>
             </>
           ) : (
             // STEP 2: Shipping Form
             <>
+              {!isLoggedIn && guestSubmitMessage && (
+                <div className="mb-4 p-3 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded-md">
+                  {guestSubmitMessage}
+                  <span className="font-semibold block mt-1">
+                    Vui lòng kiểm tra email để đăng nhập và tiếp tục.
+                  </span>
+                </div>
+              )}
               <div className="mb-6 pb-3 border-b border-gray-300 flex justify-between items-center">
                 <div>
                   <p className="font-medium">Liên hệ</p>
@@ -321,9 +377,7 @@ const handleCreateCashOrder = async () => {
 
               <Button
                 textContent={
-                  isCreatingOrder
-                    ? "Đang xử lý..."
-                    : "Tiếp tục đến thanh toán"
+                  isCreatingOrder ? "Đang xử lý..." : "Tiếp tục đến thanh toán"
                 }
                 onClick={handleContinueToPayment}
                 className="mt-6 w-full cursor-pointer"

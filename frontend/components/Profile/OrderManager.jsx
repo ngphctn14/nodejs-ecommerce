@@ -119,7 +119,7 @@ const OrderManager = () => {
                 id: order._id,
                 products: products,
                 address: order.address_id,
-                paymentMethod: order.payment_method, // Lấy từ DB
+                paymentMethod: order.payment_method,
                 paymentStatus: order.payment_status,
                 status: order.status,
               };

@@ -25,6 +25,7 @@ export const getOrderItemsByOrderId = async (req, res) => {
       items.map(async (item) => {
         const variantId = item.product_variant_id?._id;
         const productId = item.product_variant_id?.productId?._id;
+        const productName = item.product_variant_id?.productId?.name || "Sản phẩm không xác định";
 
         let image = await ProductImage.findOne({ productVariantId: variantId });
         if (!image && productId) {
@@ -33,6 +34,8 @@ export const getOrderItemsByOrderId = async (req, res) => {
 
         return {
           ...item.toObject(),
+          productId: productId, 
+          name: productName,   
           image: image ? image.url : null,
         };
       })

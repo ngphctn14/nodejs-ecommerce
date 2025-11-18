@@ -71,7 +71,7 @@ const ProductInfo = ({ product }) => {
           cart[existingItemIndex].quantity += 1;
         } else {
           const newItem = {
-            variantId: selectedVariant._id,
+            id: selectedVariant._id,
             name: name,
             size: selectedVariant.size,
             color: selectedVariant.color,

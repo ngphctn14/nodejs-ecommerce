@@ -16,6 +16,7 @@ import BrandPage from "../pages/Products/BrandPage"
 import PaymentFailed from "../pages/PaymentFailed";
 import OrderSuccess from "../pages/OrderSuccess";
 import ProductDetailPage from "../pages/Products/ProductDetailPage"; 
+import ResetPassword from "../pages/ResetPassword";
 
 function App() {
   return (
@@ -39,6 +40,8 @@ function App() {
 
         <Route path="/payment-failed" element={<PaymentFailed />} />
         <Route path="/order-success/:orderId" element={<OrderSuccess />} />
+
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         <Route path="*" element={<Error />} />
       </Routes>

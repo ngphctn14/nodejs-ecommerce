@@ -11,8 +11,11 @@ import express from "express";
 import dotenv from "dotenv";
 import Order from "../models/orderModel.js";
 import Cart from "../models/cartModel.js";
+import User from "../models/userModel.js";
 import CartItem from "../models/cartItemModel.js";
 import { authenticateUser } from "../middlewares/authMiddleware.js";
+
+import { sendOrderSuccessEmail } from "../config/mailer.js";
 
 dotenv.config();
 
@@ -121,7 +124,12 @@ router.get("/vnpay-ipn", async (req, res) => {
 
     order.payment_status = "paid";
     order.status = "confirmed";
+
+    const user = await User.findById(order.user_id);
+
     await order.save();
+
+    await sendOrderSuccessEmail(user, order);
 
     return res.json(IpnSuccess);
   } catch (error) {
