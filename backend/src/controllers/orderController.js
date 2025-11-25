@@ -27,7 +27,7 @@ export const getOrdersByUserId = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const orders = await Order.find({ user_id: req.user.id })
-      .populate("address_id")
+      .populate("address_id discount_code_id")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -80,6 +80,7 @@ export const createOrder = async (req, res) => {
 export const updateOrder = async (req, res) => {
   try {
     const order = await Order.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    await order.updateStatus(req.body.status);
     if (!order) return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
     res.json(order);
   } catch (err) {
@@ -199,35 +200,39 @@ export const updateOrderStatus = async (req, res) => {
       });
     }
 
-    const updateData = {};
+    // 1. Find the document first (Do NOT update it yet)
+    const order = await Order.findById(id);
+    if (!order) {
+      return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
+    }
+
+    // 2. Validate Status (Optional but good practice)
     if (status) {
       const validStatuses = ["pending", "confirmed", "shipping", "delivered", "cancelled"];
       if (!validStatuses.includes(status)) {
         return res.status(400).json({ message: "Trạng thái đơn hàng không hợp lệ" });
       }
-      updateData.status = status;
+      // Call the custom method which handles logic AND saving
+      await order.updateStatus(status);
     }
 
+    // 3. Handle Payment Status separately if needed
+    // (Your custom method updates payment_status automatically for vnpay confirmed orders,
+    // but if you want to manually update payment_status, do it here)
     if (paymentStatus) {
       const validPaymentStatuses = ["unpaid", "paid", "refunded"];
       if (!validPaymentStatuses.includes(paymentStatus)) {
         return res.status(400).json({ message: "Trạng thái thanh toán không hợp lệ" });
       }
-      updateData.payment_status = paymentStatus;
+      order.payment_status = paymentStatus;
+      await order.save();
     }
 
-    const updatedOrder = await Order.findByIdAndUpdate(id, updateData, { 
-      new: true, 
-      runValidators: true 
-    });
-
-    if (!updatedOrder) {
-      return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
-    }
-
+    // 4. Return the updated order
+    // Fetch again or return the modified 'order' object
     return res.status(200).json({
       message: "Cập nhật thành công",
-      order: updatedOrder
+      order: order
     });
 
   } catch (error) {

@@ -1,3 +1,7 @@
+import User from "./userModel.js";
+import ProductVariant from "./productVariantModel.js";
+import OrderItem from "./orderItemModel.js";
+
 import mongoose from "mongoose";
 
 const { Schema } = mongoose;
@@ -42,12 +46,82 @@ const orderSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "confirmed", "shipping", "delivered", "cancelled"], 
+      enum: ["pending", "confirmed", "shipping", "delivered", "cancelled"],
       default: "pending",
     },
   },
   { timestamps: true }
 );
+
+orderSchema.methods.updateStatus = async function (newStatus) {
+  const oldStatus = this.status;
+
+  if (oldStatus === newStatus) return;
+
+  const orderItems = await OrderItem.find({ order_id: this._id });
+
+  if (oldStatus === "pending" && newStatus === "confirmed") {
+    // 1. Deduct Stock
+    for (const item of orderItems) {
+      const variant = await ProductVariant.findById(item.product_variant_id);
+      if (!variant) continue;
+
+      if (variant.stock < item.quantity) {
+        throw new Error(`Sản phẩm ${variant.sku} không đủ hàng tồn kho.`);
+      }
+      variant.stock -= item.quantity;
+      await variant.save();
+    }
+
+    // 2. Add Earned Points
+    if (this.loyalty_points_earned > 0) {
+      await User.findByIdAndUpdate(this.user_id, {
+        $inc: { loyaltyPoints: this.loyalty_points_earned },
+      });
+    }
+
+    if (this.loyalty_points_used > 0) {
+      await User.findByIdAndUpdate(this.user_id, {
+        $inc: { loyaltyPoints: -this.loyalty_points_used },
+      });
+    }
+  }
+
+  // --- CASE B: Cancelling Order (Any -> Cancelled) ---
+  if (newStatus === "cancelled" && oldStatus !== "cancelled") {
+    // 1. Restock (Only if previously deducted)
+    if (["confirmed", "shipping", "delivered"].includes(oldStatus)) {
+      for (const item of orderItems) {
+        await ProductVariant.findByIdAndUpdate(item.product_variant_id, {
+          $inc: { stock: item.quantity },
+        });
+      }
+
+      // 2. Remove Earned Points
+      if (this.loyalty_points_earned > 0) {
+        await User.findByIdAndUpdate(this.user_id, {
+          $inc: { loyaltyPoints: -this.loyalty_points_earned },
+        });
+      }
+    }
+
+    // 3. Refund Used Points (Always do this)
+    if (this.loyalty_points_used > 0) {
+      await User.findByIdAndUpdate(this.user_id, {
+        $inc: { loyaltyPoints: this.loyalty_points_used },
+      });
+    }
+  }
+
+  // Update status
+  this.status = newStatus;
+  // If confirmed, also mark paid (optional, depends on your flow)
+  if (newStatus === "confirmed" && this.payment_method === "vnpay") {
+    this.payment_status = "paid";
+  }
+
+  return this.save();
+};
 
 const Order = mongoose.model("Order", orderSchema);
 

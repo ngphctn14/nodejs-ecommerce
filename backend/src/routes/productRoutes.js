@@ -6,7 +6,8 @@ import {
   updateProduct,
   deleteProduct,
   getProductsByBrand,
-  getProductsByCategory
+  getProductsByCategory,
+  getProductFilters
 } from "../controllers/productController.js";
 
 import { getProductVariantsByProductId } from "../controllers/productVariantController.js";
@@ -15,6 +16,7 @@ import { getProductImagesByProductId } from "../controllers/productImageControll
 const router = express.Router();
 
 router.get("/", getProducts);
+router.get("/filters", getProductFilters);
 router.get("/:id", getProductDetails);
 router.get("/brand/:slug", getProductsByBrand);
 router.get("/category/:slug", getProductsByCategory);

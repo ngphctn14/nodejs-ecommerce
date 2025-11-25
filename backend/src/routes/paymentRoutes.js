@@ -125,6 +125,8 @@ router.get("/vnpay-ipn", async (req, res) => {
     order.payment_status = "paid";
     order.status = "confirmed";
 
+    await order.updateStatus(order.status);
+
     const user = await User.findById(order.user_id);
 
     await order.save();

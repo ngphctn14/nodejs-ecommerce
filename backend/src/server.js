@@ -13,7 +13,7 @@ import addressRoutes from "./routes/addressRoutes.js";
 import productImageRoutes from "./routes/productImageRoutes.js";
 import productVariantRoutes from "./routes/productVariantRoutes.js";
 
-import discountCodeRoutes from './routes/discounrCodeRoutes.js'
+import discountCodeRoutes from './routes/discountCodeRoutes.js'
 import cartRoutes from "./routes/cartRoutes.js";
 import cartItemRoutes from "./routes/cartItemRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";

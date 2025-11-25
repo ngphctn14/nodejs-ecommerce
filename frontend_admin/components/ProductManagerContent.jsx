@@ -6,7 +6,7 @@ import {
 import axios from 'axios'
 
 const ProductManagerContent = () => {
-  const API_BASE_URL = import.meta.env.VITE_API_URL;;
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -19,18 +19,32 @@ const ProductManagerContent = () => {
         setIsLoading(true);
         const [productRes, cateRes, brandRes] = await Promise.all([
           axios.get(`${API_BASE_URL}/products`), 
-          axios.get(`${API_BASE_URL}/categories`),                         
+          axios.get(`${API_BASE_URL}/categories`),                          
           axios.get(`${API_BASE_URL}/brands`) 
         ]);
 
-        const productsData = productRes.data;
+        // 🔽 FIX: Ensure productsData is an array
+        let productsData = productRes.data;
+        if (!Array.isArray(productsData)) {
+            if (productsData && Array.isArray(productsData.products)) {
+                productsData = productsData.products;
+            } else if (productsData && Array.isArray(productsData.data)) {
+                productsData = productsData.data;
+            } else {
+                productsData = [];
+                console.warn("API did not return an array of products:", productRes.data);
+            }
+        }
         
         // Lấy variants (Giữ nguyên logic cũ)
         const productsWithVariants = await Promise.all(
           productsData.map(async (product) => {
             try {
               const variantRes = await axios.get(`${API_BASE_URL}/products/${product._id}/variants`);
-              const formattedVariants = variantRes.data.map(v => ({
+              // Ensure variantRes.data is an array too
+              const variantsData = Array.isArray(variantRes.data) ? variantRes.data : [];
+              
+              const formattedVariants = variantsData.map(v => ({
                 ...v,
                 color: v.attributes?.color || v.color, 
                 size: v.attributes?.size || v.size,
@@ -44,11 +58,14 @@ const ProductManagerContent = () => {
         );
 
         setProducts(productsWithVariants);
-        setCategories(cateRes.data);
-        setBrands(brandRes.data);
+        
+        // Safely set categories and brands too
+        setCategories(Array.isArray(cateRes.data) ? cateRes.data : []);
+        setBrands(Array.isArray(brandRes.data) ? brandRes.data : []);
 
       } catch (error) {
         console.error("Lỗi tải dữ liệu:", error);
+        setProducts([]); // Reset to empty array on error
       } finally {
         setIsLoading(false);
       }
@@ -60,7 +77,7 @@ const ProductManagerContent = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterBrand, setFilterBrand] = useState('all');
-  
+   
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -72,7 +89,7 @@ const ProductManagerContent = () => {
   const [editingVariant, setEditingVariant] = useState(null);
   const [expandedRows, setExpandedRows] = useState({}); 
   const [variantForm, setVariantForm] = useState({ sku: '', price: '', color: '', size: '', stock: '' });
-  
+   
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [currentImages, setCurrentImages] = useState([]);
   const [newImageUrl, setNewImageUrl] = useState(''); 
@@ -115,8 +132,11 @@ const ProductManagerContent = () => {
   }, [variantModalOpen]);
 
   // --- Filter Logic ---
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+  // Ensure products is an array before filtering
+  const safeProducts = Array.isArray(products) ? products : [];
+  
+  const filteredProducts = safeProducts.filter(product => {
+    const matchesSearch = (product.name || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = filterCategory === 'all' || product.categoryId === filterCategory;
     const matchesBrand = filterBrand === 'all' || product.brandId === filterBrand;
     return matchesSearch && matchesCategory && matchesBrand;
@@ -217,10 +237,11 @@ const ProductManagerContent = () => {
   const openImageModal = async (product) => {
     setSelectedProduct(product);
     setImageModalOpen(true);
-    
+     
     try {
       const res = await axios.get(`${API_BASE_URL}/products/${product._id}/images`);
-      setCurrentImages(res.data); 
+      // Ensure images response is array
+      setCurrentImages(Array.isArray(res.data) ? res.data : []); 
     } catch (error) {
       console.warn("Chưa load được danh sách ảnh chi tiết, hiển thị ảnh mặc định.");
       if (product.imageUrl) {
@@ -425,7 +446,7 @@ const ProductManagerContent = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">Tổng sản phẩm</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{products.length}</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{safeProducts.length}</p>
             </div>
             <Package className="h-10 w-10 text-indigo-600" />
           </div>
@@ -435,7 +456,7 @@ const ProductManagerContent = () => {
             <div>
               <p className="text-sm text-gray-500">Đang giảm giá</p>
               <p className="text-3xl font-bold text-orange-600 mt-2">
-                {products.filter(p => p.discountPercent > 0).length}
+                {safeProducts.filter(p => p.discountPercent > 0).length}
               </p>
             </div>
             <Tag className="h-10 w-10 text-orange-600" />
@@ -446,7 +467,7 @@ const ProductManagerContent = () => {
             <div>
               <p className="text-sm text-gray-500">Doanh số cao</p>
               <p className="text-3xl font-bold text-green-600 mt-2">
-                {products.length > 0 ? (products.sort((a,b) => b.sales - a.sales)[0]?.sales || 0) : 0}
+                {safeProducts.length > 0 ? (safeProducts.sort((a,b) => b.sales - a.sales)[0]?.sales || 0) : 0}
               </p>
             </div>
             <ShoppingBag className="h-10 w-10 text-green-600" />
@@ -458,7 +479,7 @@ const ProductManagerContent = () => {
               <p className="text-sm text-gray-500">Tổng doanh thu (Ước tính)</p>
               <p className="text-2xl font-bold text-purple-600 mt-2">
                 {formatCurrency(
-                  products.reduce((sum, p) => sum + (calculateFinalPrice(p.basePrice, p.discountPercent) * (p.sales || 0)), 0)
+                  safeProducts.reduce((sum, p) => sum + (calculateFinalPrice(p.basePrice, p.discountPercent) * (p.sales || 0)), 0)
                 )}
               </p>
             </div>
@@ -586,7 +607,7 @@ const ProductManagerContent = () => {
                           >
                             <ImageIcon className="h-4 w-4" />
                           </button>
-                          
+                           
                           <button
                             onClick={() => openEditModal(product)}
                             className="p-2 hover:bg-indigo-50 rounded-lg text-indigo-600 transition"
