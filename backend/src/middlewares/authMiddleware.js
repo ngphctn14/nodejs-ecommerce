@@ -21,6 +21,31 @@ export const authenticateUser = async (req, res, next) => {
   }
 };
 
+export const authenticateUserOptional = async (req, res, next) => {
+  try {
+    const token = req.cookies?.accessToken;
+
+    if (!token) {
+      req.user = null;
+      return next();
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_KEY);
+    
+    const cart = await Cart.findOne({ userId: decoded.id });
+    if (cart) {
+        decoded.cartId = `${cart._id}`;
+    }
+
+    req.user = decoded;
+    
+    next();
+  } catch (err) {
+    req.user = null;
+    next();
+  }
+};
+
 export const authorizeAdmin = (req, res, next) => {
   if (req.user.role !== "admin") {
     return res.status(403).json({ message: "Forbidden: Admins only" });

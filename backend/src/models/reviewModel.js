@@ -17,10 +17,8 @@ const reviewSchema = new Schema(
     rating: {
       type: Number,
       enum: [
-        null,
         1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5
       ],
-      default: null,
     },
     comment: {
       type: String,
