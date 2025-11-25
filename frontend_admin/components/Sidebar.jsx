@@ -1,9 +1,14 @@
 import React from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Package, Users, ShoppingCart, Tag, Menu, X, LogOut, Shirt
 } from 'lucide-react';
 
 export default function Sidebar({ isOpen, setIsOpen, activeMenu, setActiveMenu }) {
+  const navigate = useNavigate(); 
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, description: 'Tổng quan hệ thống' },
     { id: 'products', label: 'Product Management', icon: Package, description: 'Quản lý sản phẩm' },
@@ -14,6 +19,16 @@ export default function Sidebar({ isOpen, setIsOpen, activeMenu, setActiveMenu }
 
   const handleMenuClick = (menuId) => {
     setActiveMenu(menuId);
+  };
+
+  const handleLogout = () => {
+    const confirmLogout = window.confirm("Bạn có chắc chắn muốn đăng xuất?");
+    if (!confirmLogout) return;
+
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('user');
+
+    navigate('/login');
   };
 
   return (
@@ -63,7 +78,7 @@ export default function Sidebar({ isOpen, setIsOpen, activeMenu, setActiveMenu }
         </ul>
       </nav>
 
-      <div className="border-t border-gray-200 p- Gems4">
+      <div className="border-t border-gray-200 p-4">
         {isOpen ? (
           <div className="space-y-3">
             <div className="flex items-center gap-3 px-3 py-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border">
@@ -72,13 +87,22 @@ export default function Sidebar({ isOpen, setIsOpen, activeMenu, setActiveMenu }
                 <p className="font-semibold text-sm">Admin User</p>
               </div>
             </div>
-            <button className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 rounded-xl text-red-600">
+            
+            <button 
+              onClick={handleLogout} 
+              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 rounded-xl text-red-600 transition-colors"
+            >
               <LogOut className="h-5 w-5" />
               <span className="font-medium text-sm">Đăng xuất</span>
             </button>
+
           </div>
         ) : (
-          <button className="w-full p-2 hover:bg-red-50 rounded-lg text-red-600">
+          <button
+            onClick={handleLogout}
+            className="w-full p-2 hover:bg-red-50 rounded-lg text-red-600 transition-colors" 
+            title="Đăng xuất"
+          >
             <LogOut className="h-6 w-6 mx-auto" />
           </button>
         )}

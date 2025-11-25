@@ -13,6 +13,7 @@ import addressRoutes from "./routes/addressRoutes.js";
 import productImageRoutes from "./routes/productImageRoutes.js";
 import productVariantRoutes from "./routes/productVariantRoutes.js";
 
+import discountCodeRoutes from './routes/discounrCodeRoutes.js'
 import cartRoutes from "./routes/cartRoutes.js";
 import cartItemRoutes from "./routes/cartItemRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
@@ -21,6 +22,8 @@ import orderItemRoutes from "./routes/orderItemRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 
 import paymentRoutes from "./routes/paymentRoutes.js";
+
+import dashboardRoutes from './routes/dashboardRoutes.js'
 
 import connectDB from "./config/db.js";
 import passport from "./config/passport.js";
@@ -31,10 +34,9 @@ const app = express();
 
 app.use(express.json());
 app.use(passport.initialize());
-
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    origin: [process.env.CLIENT_URL, process.env.ADMIN_CLIENT_URL],
     credentials: true,
   })
 );
@@ -49,6 +51,8 @@ app.use("/api/brands", brandRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
 
+app.use("/api/discount-codes", discountCodeRoutes)
+
 app.use("/api/product-images", productImageRoutes);
 app.use("/api/product-variants", productVariantRoutes);
 
@@ -57,6 +61,7 @@ app.use("/api/cart-items", cartItemRoutes);
 
 app.use("/api/orders", orderRoutes);
 app.use("/api/order-items", orderItemRoutes);
+app.use("/api/dashboard", dashboardRoutes)
 
 app.use("/api/reviews", reviewRoutes);
 

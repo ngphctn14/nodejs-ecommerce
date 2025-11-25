@@ -10,7 +10,8 @@ import {
   handleGuestFlow,
   verifyGuestToken,
   requestPasswordReset,
-  resetPassword
+  resetPassword,
+  adminLogin
 } from "../controllers/authController.js";
 import { authenticateUser } from "../middlewares/authMiddleware.js";
 import express from "express";
@@ -29,5 +30,6 @@ router.post("/guest-checkout-init", handleGuestFlow);
 router.get("/verify-guest-token", verifyGuestToken);
 router.post("/forgot-password", requestPasswordReset);
 router.post("/reset-password/:token", resetPassword);
+router.post("/admin/login", adminLogin)
 
 export default router;

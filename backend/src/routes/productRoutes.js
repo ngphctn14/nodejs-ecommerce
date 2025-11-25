@@ -6,7 +6,7 @@ import {
   updateProduct,
   deleteProduct,
   getProductsByBrand,
-  getProductsByCategory,
+  getProductsByCategory
 } from "../controllers/productController.js";
 
 import { getProductVariantsByProductId } from "../controllers/productVariantController.js";

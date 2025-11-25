@@ -3,36 +3,49 @@ import {
   Search, Edit, Ban, UserCheck, AlertCircle, X, Shield, Mail, 
   CheckCircle, XCircle, Globe, Facebook, Chrome, Star, ArrowUpDown
 } from 'lucide-react';
+import axios from 'axios';
 
 const UserManagementContent = () => {
-  const [users, setUsers] = useState([
-    { _id: '1', fullName: 'Nguyễn Văn Admin', email: 'admin@gmail.com', isVerified: true, role: 'admin', provider: 'local', loyaltyPoints: 2850, banned: false },
-    { _id: '2', fullName: 'Trần Thị User', email: 'user1@yahoo.com', isVerified: false, role: 'user', provider: 'local', loyaltyPoints: 120, banned: false },
-    { _id: '3', fullName: 'Lê Hoàng Google', email: 'googleuser@gmail.com', isVerified: true, role: 'user', provider: 'google', loyaltyPoints: 890, banned: false },
-    { _id: '4', fullName: 'Phạm Văn FB', email: 'fbuser@facebook.com', isVerified: true, role: 'user', provider: 'facebook', loyaltyPoints: 2100, banned: false },
-    { _id: '5', fullName: 'Hoàng Thị Banned', email: 'banned@temp.com', isVerified: true, role: 'user', provider: 'local', loyaltyPoints: 450, banned: true },
-    { _id: '6', fullName: 'Vũ Minh Pro', email: 'pro@gmail.com', isVerified: true, role: 'admin', provider: 'google', loyaltyPoints: 5200, banned: false },
-    { _id: '7', fullName: 'Đỗ Thị Chưa Xác Thực', email: 'unverified@temp.com', isVerified: false, role: 'user', provider: 'local', loyaltyPoints: 75, banned: false },
-  ]);
+  const API_BASE_URL = import.meta.env.VITE_API_URL;;
+
+  const [users, setUsers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [filterVerified, setFilterVerified] = useState('all');
   const [filterProvider, setFilterProvider] = useState('all');
+  
   const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [banConfirm, setBanConfirm] = useState(null);
 
-  // Sort state
   const [sortField, setSortField] = useState(null);
-  const [sortOrder, setSortOrder] = useState('asc'); // 'asc' or 'desc'
-
-  const itemsPerPage = 6;
+  const [sortOrder, setSortOrder] = useState('asc'); 
 
   const [formData, setFormData] = useState({
     fullName: '', email: '', role: 'user'
   });
+
+  const fetchUsers = async () => {
+    try {
+      setIsLoading(true);
+      const res = await axios.get(`${API_BASE_URL}/users`);
+      setUsers(res.data);
+    } catch (error) {
+      console.error("Lỗi lấy danh sách người dùng:", error);
+
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   useEffect(() => {
     if (!isEditModalOpen && !editingUser) {
@@ -40,7 +53,6 @@ const UserManagementContent = () => {
     }
   }, [isEditModalOpen, editingUser]);
 
-  // Sorting logic
   const handleSort = (field) => {
     if (sortField === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -52,11 +64,11 @@ const UserManagementContent = () => {
 
   const sortedAndFilteredUsers = [...users]
     .filter(user => {
-      const matchesSearch = user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           user.email.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = (user.fullName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            (user.email || '').toLowerCase().includes(searchTerm.toLowerCase());
       const matchesRole = filterRole === 'all' || user.role === filterRole;
       const matchesVerified = filterVerified === 'all' || 
-                             (filterVerified === 'true' ? user.isVerified : !user.isVerified);
+                              (filterVerified === 'true' ? user.isVerified : !user.isVerified);
       const matchesProvider = filterProvider === 'all' || user.provider === filterProvider;
       return matchesSearch && matchesRole && matchesVerified && matchesProvider;
     })
@@ -66,7 +78,7 @@ const UserManagementContent = () => {
       const bValue = b[sortField];
       
       if (sortField === 'loyaltyPoints') {
-        return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
+        return sortOrder === 'asc' ? (aValue || 0) - (bValue || 0) : (bValue || 0) - (aValue || 0);
       }
       if (typeof aValue === 'string') {
         return sortOrder === 'asc' 
@@ -82,23 +94,56 @@ const UserManagementContent = () => {
     currentPage * itemsPerPage
   );
 
-  const handleUpdateUser = () => {
-    setUsers(users.map(u => 
-      u._id === editingUser._id 
-        ? { ...u, ...formData }
-        : u
-    ));
-    setIsEditModalOpen(false);
-    setEditingUser(null);
+  const handleUpdateUser = async () => {
+    if (!editingUser) return;
+
+    try {
+      const payload = {
+        fullName: formData.fullName,
+        email: formData.email,
+        role: formData.role
+      };
+
+      const res = await axios.put(`${API_BASE_URL}/users/${editingUser._id}`, payload);
+      
+      setUsers(users.map(u => 
+        u._id === editingUser._id 
+          ? { ...u, ...res.data } 
+          : u
+      ));
+
+      setIsEditModalOpen(false);
+      setEditingUser(null);
+      alert("Cập nhật thành công!");
+
+    } catch (error) {
+      console.error("Lỗi cập nhật người dùng:", error);
+      alert("Không thể cập nhật người dùng. Vui lòng thử lại.");
+    }
   };
 
-  const handleToggleBan = (user) => {
-    setUsers(users.map(u => 
-      u._id === user._id 
-        ? { ...u, banned: !u.banned }
-        : u
-    ));
-    setBanConfirm(null);
+  const handleToggleBan = async (user) => {
+    if (!user) return;
+
+    try {
+      const newBanStatus = !user.banned;
+      
+
+      const res = await axios.patch(`${API_BASE_URL}/users/${user._id}/ban-status`, { banned: newBanStatus });
+      
+      setUsers(users.map(u => 
+        u._id === user._id 
+          ? { ...u, ...res.data }
+          : u
+      ));
+      
+      setBanConfirm(null);
+      alert(newBanStatus ? "Đã cấm người dùng thành công!" : "Đã mở khóa tài khoản thành công!");
+
+    } catch (error) {
+      console.error("Lỗi thay đổi trạng thái cấm:", error);
+      alert("Lỗi hệ thống. Không thể thay đổi trạng thái người dùng.");
+    }
   };
 
   const openEditModal = (user) => {
@@ -128,8 +173,16 @@ const UserManagementContent = () => {
   };
 
   const formatPoints = (points) => {
-    return new Intl.NumberFormat('vi-VN').format(points);
+    return new Intl.NumberFormat('vi-VN').format(points || 0);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -187,10 +240,8 @@ const UserManagementContent = () => {
             <Ban className="h-10 w-10 text-red-600" />
           </div>
         </div>
-        
       </div>
 
-      {/* Search & Filters */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1 relative">
@@ -225,7 +276,6 @@ const UserManagementContent = () => {
         </div>
       </div>
 
-      {/* Users Table */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -332,7 +382,6 @@ const UserManagementContent = () => {
           </table>
         </div>
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-center px-6 py-4 border-t border-gray-200 gap-4">
             <p className="text-sm text-gray-600">
@@ -358,7 +407,6 @@ const UserManagementContent = () => {
         )}
       </div>
 
-      {/* Edit User Modal - Không có loyaltyPoints */}
       {isEditModalOpen && editingUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
@@ -400,7 +448,6 @@ const UserManagementContent = () => {
                 </select>
               </div>
 
-              {/* Hiển thị điểm tích lũy - chỉ đọc */}
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
                 <div className="flex items-center gap-2">
                   <Star className="h-5 w-5 text-amber-600 fill-amber-500" />
