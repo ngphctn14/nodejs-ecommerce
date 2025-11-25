@@ -87,7 +87,7 @@ export const getProductsByCategory = async (req, res) => {
   }
 };
 
-// ✅ Get products by brand (with image)
+// Get products by brand (with image)
 export const getProductsByBrand = async (req, res) => {
   try {
     const brand = await Brand.findOne({ slug: req.params.slug });
@@ -277,3 +277,4 @@ export const deleteProduct = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+

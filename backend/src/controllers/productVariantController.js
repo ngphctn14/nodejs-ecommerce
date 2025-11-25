@@ -1,9 +1,14 @@
 import ProductVariant from "../models/productVariantModel.js";
+import mongoose from 'mongoose';
 
 export const getProductVariantsByProductId = async (req, res) => {
   try {
     const { productId } = req.params;
-    const variants = await ProductVariant.find({ product_id: productId });
+    const queryValue = mongoose.Types.ObjectId.isValid(productId) 
+      ? new mongoose.Types.ObjectId(productId) 
+      : productId;
+    const variants = await ProductVariant.find({ productId: queryValue })
+      .select('sku price stock attributes');
     if (!variants.length)
       return res.status(404).json({ message: "Không tìm thấy biến thể sản phẩm" });
     res.json(variants);

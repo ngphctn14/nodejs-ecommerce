@@ -3,7 +3,7 @@ import ProductImage from "../models/productImageModel.js";
 export const getProductImagesByProductId = async (req, res) => {
   try {
     const { productId } = req.params;
-    const images = await ProductImage.find({ product_id: productId });
+    const images = await ProductImage.find({ productId: productId });
     if (!images.length)
       return res.status(404).json({ message: "Không tìm thấy ảnh sản phẩm" });
     res.json(images);

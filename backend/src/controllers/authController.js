@@ -371,3 +371,30 @@ export const resetPassword = async (req, res) => {
     res.status(500).json({ message: "Lỗi máy chủ" });
   }
 };
+
+export const adminLogin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user || !(await user.comparePassword(password)) || user.role !== "admin") {
+      return res.status(400).json({ message: "Thông tin không hợp lệ hoặc không có quyền" });
+    }
+
+    const token = generateToken(user);
+
+    res.json({
+      message: "Đăng nhập quản trị thành công",
+      token: token, 
+      user: {
+        id: user._id,
+        full_name: user.fullName,
+        email: user.email,
+        role: user.role,
+      },
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi máy chủ" });
+  }
+};

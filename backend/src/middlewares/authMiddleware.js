@@ -27,3 +27,21 @@ export const authorizeAdmin = (req, res, next) => {
   }
   next();
 };
+
+export const verifyToken = (req, res, next) => {
+  const authHeader = req.headers.authorization; 
+  
+  const token = authHeader && authHeader.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ message: "Chưa đăng nhập (Thiếu Token)" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_KEY);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(403).json({ message: "Token không hợp lệ hoặc hết hạn" });
+  }
+};

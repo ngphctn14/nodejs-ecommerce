@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema(
     role: { type: String, enum: ["customer", "admin"], default: "customer" },
     provider: { type: String, default: "local" },
     loyaltyPoints: { type: Number, default: 0, min: 0 },
+    banned: {type: Boolean, default: false},
     resetPasswordToken: String,
     resetPasswordExpires: Date,
   },
