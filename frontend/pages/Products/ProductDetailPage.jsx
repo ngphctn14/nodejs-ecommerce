@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ProductInfo from "../../components/Products/ProductInfo";
+import ProductReviews from "./ProductReviews";
 import Navbar from "../../components/Shared/Navbar";
 import Footer from "../../components/Shared/Footer";
 import axiosClient from "../../api/axiosClient";
@@ -109,7 +110,11 @@ useEffect(() => {
         )}
 
         {!loading && !error && product && (
-          <ProductInfo product={product} />
+          <div className="container mx-auto px-4">
+            <ProductInfo product={product} />
+            
+            <ProductReviews productId={id} />
+          </div>
         )}
       </div>
 
