@@ -28,7 +28,8 @@ const DashboardContent = () => {
   const [revenueData, setRevenueData] = useState([]);
   const [topProducts, setTopProducts] = useState([]);
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL;;
+  // Use the environment variable correctly
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -48,8 +49,21 @@ const DashboardContent = () => {
         ]);
 
         setMetrics(metricsRes.data);
-        setRevenueData(chartRes.data);
-        setTopProducts(topProductsRes.data);
+        
+        // Ensure revenueData is an array
+        setRevenueData(Array.isArray(chartRes.data) ? chartRes.data : []);
+        
+        // 🔽 FIX: Safely handle topProducts response 🔽
+        // Check if data is array, or if it's wrapped in an object property
+        const productsData = topProductsRes.data;
+        if (Array.isArray(productsData)) {
+            setTopProducts(productsData);
+        } else if (productsData && Array.isArray(productsData.products)) {
+            setTopProducts(productsData.products);
+        } else {
+            console.warn("Top products data format unexpected:", productsData);
+            setTopProducts([]);
+        }
 
       } catch (error) {
         console.error("Lỗi tải dữ liệu dashboard:", error);
@@ -196,12 +210,12 @@ const DashboardContent = () => {
               </tr>
             </thead>
             <tbody className="text-sm">
-              {topProducts.length > 0 ? (
-                topProducts.map((product) => (
-                  <tr key={product.rank} className="border-b hover:bg-gray-50 transition">
+              {Array.isArray(topProducts) && topProducts.length > 0 ? (
+                topProducts.map((product, index) => (
+                  <tr key={product.rank || index} className="border-b hover:bg-gray-50 transition">
                     <td className="py-4">
                       <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold text-xs">
-                        {product.rank}
+                        {product.rank || index + 1}
                       </div>
                     </td>
                     <td className="py-4 font-medium text-gray-900">{product.name}</td>

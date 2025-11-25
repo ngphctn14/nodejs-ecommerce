@@ -6,7 +6,8 @@ import {
 import axios from 'axios';
 
 const UserManagementContent = () => {
-  const API_BASE_URL = import.meta.env.VITE_API_URL;;
+  // Use the environment variable correctly
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -15,7 +16,7 @@ const UserManagementContent = () => {
   const [filterRole, setFilterRole] = useState('all');
   const [filterVerified, setFilterVerified] = useState('all');
   const [filterProvider, setFilterProvider] = useState('all');
-  
+   
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
@@ -34,10 +35,21 @@ const UserManagementContent = () => {
     try {
       setIsLoading(true);
       const res = await axios.get(`${API_BASE_URL}/users`);
-      setUsers(res.data);
+      
+      // 🔽 FIX: Ensure response data is an array before setting state
+      if (Array.isArray(res.data)) {
+        setUsers(res.data);
+      } else if (res.data && Array.isArray(res.data.users)) {
+        // Handle case where API returns { users: [...] }
+        setUsers(res.data.users);
+      } else {
+        console.warn("API did not return an array of users:", res.data);
+        setUsers([]);
+      }
+
     } catch (error) {
       console.error("Lỗi lấy danh sách người dùng:", error);
-
+      setUsers([]); // Set to empty array on error to prevent crashes
     } finally {
       setIsLoading(false);
     }
@@ -62,7 +74,10 @@ const UserManagementContent = () => {
     }
   };
 
-  const sortedAndFilteredUsers = [...users]
+  // 🔽 FIX: Ensure users is an array before filtering/sorting
+  const safeUsers = Array.isArray(users) ? users : [];
+
+  const sortedAndFilteredUsers = [...safeUsers]
     .filter(user => {
       const matchesSearch = (user.fullName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                             (user.email || '').toLowerCase().includes(searchTerm.toLowerCase());
@@ -200,7 +215,7 @@ const UserManagementContent = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500">Tổng người dùng</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{users.length}</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{safeUsers.length}</p>
             </div>
             <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
               <UserCheck className="h-6 w-6 text-indigo-600" />
@@ -212,7 +227,7 @@ const UserManagementContent = () => {
             <div>
               <p className="text-sm text-gray-500">Admin</p>
               <p className="text-3xl font-bold text-purple-600 mt-2">
-                {users.filter(u => u.role === 'admin').length}
+                {safeUsers.filter(u => u.role === 'admin').length}
               </p>
             </div>
             <Shield className="h-10 w-10 text-purple-600" />
@@ -223,7 +238,7 @@ const UserManagementContent = () => {
             <div>
               <p className="text-sm text-gray-500">Đã xác thực</p>
               <p className="text-3xl font-bold text-green-600 mt-2">
-                {users.filter(u => u.isVerified).length}
+                {safeUsers.filter(u => u.isVerified).length}
               </p>
             </div>
             <CheckCircle className="h-10 w-10 text-green-600" />
@@ -234,7 +249,7 @@ const UserManagementContent = () => {
             <div>
               <p className="text-sm text-gray-500">Bị cấm</p>
               <p className="text-3xl font-bold text-red-600 mt-2">
-                {users.filter(u => u.banned).length}
+                {safeUsers.filter(u => u.banned).length}
               </p>
             </div>
             <Ban className="h-10 w-10 text-red-600" />
