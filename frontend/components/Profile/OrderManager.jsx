@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router";
-import axiosClient from "../../api//axiosClient";
+import axiosClient from "../../api/axiosClient"; // FIX: Corrected import path
 import { AuthContext } from "../../context/AuthContext";
+import { Coins, Gift, Tag } from "lucide-react"; 
 
+// --- Order Details Modal Component ---
 const OrderDetailsModal = ({ order, onClose, formatCurrency }) => {
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
@@ -14,21 +16,37 @@ const OrderDetailsModal = ({ order, onClose, formatCurrency }) => {
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     backdropFilter: "blur(4px)",
   };
+  
+  // LOGIC TÍNH TOÁN (Đồng bộ với logic Checkout)
+  const POINT_TO_VND_RATE = 10;
+  
+  // 1. Tạm tính (Subtotal) - Recalculated from items for accuracy
+  const subtotal = order?.products.reduce((acc, p) => acc + (p.price * p.quantity), 0) || 0;
+  
+  // 2. Chiết khấu điểm thưởng (Used Points)
+  const pointsValue = (order?.loyalty_points_used || 0) * POINT_TO_VND_RATE;
+  
+  // 3. Tổng cộng cuối cùng (Final Paid)
+  const totalPaid = order?.total_price || 0;
+
+  // 4. Giảm giá Mã (Code Discount Value) - Calculated based on the known formula:
+  // DiscountValue = Subtotal - TotalPaid - PointsValue
+  const discountCodeValue = Math.max(0, subtotal - totalPaid - pointsValue);
+  
 
   return (
     <div
       className={`fixed inset-0 z-50 flex items-center justify-center
-                  transition-opacity duration-300 ease-in-out
-                  ${order ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+                   transition-opacity duration-300 ease-in-out
+                   ${order ? "opacity-100" : "opacity-0 pointer-events-none"}`}
       style={order ? backdropStyle : {}}
       onClick={handleBackdropClick}
     >
       <div
         className={`bg-white rounded-lg shadow-xl max-w-lg w-full p-6 m-4
-                    transition-all duration-300 ease-in-out
-                    ${order ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
+                     transition-all duration-300 ease-in-out
+                     ${order ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
       >
-        {/* ...rest of your modal is identical... */}
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-semibold">
             Chi tiết đơn hàng: {order?.id}
@@ -42,8 +60,9 @@ const OrderDetailsModal = ({ order, onClose, formatCurrency }) => {
         </div>
 
         <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+          <h4 className="font-bold text-gray-700 mb-2">Sản phẩm:</h4>
           {order?.products.map((product, index) => (
-            <div key={index} className="flex items-center pb-3 pt-2 space-x-3">
+            <div key={index} className="flex items-center pb-3 pt-2 space-x-3 border-b border-gray-100">
               <img
                 src={product.image}
                 alt={product.name}
@@ -55,11 +74,47 @@ const OrderDetailsModal = ({ order, onClose, formatCurrency }) => {
                   Số lượng: {product.quantity}
                 </p>
               </div>
-              <p className="text-gray-800">
+              <p className="text-gray-800 font-medium">
                 {formatCurrency(product.price * product.quantity)}
               </p>
             </div>
           ))}
+          
+          {/* Summary Details */}
+          <div className="pt-4 space-y-2 text-sm text-gray-700">
+            <p className="flex justify-between">
+              <span>Tạm tính (Subtotal):</span>
+              <span className="font-medium">{formatCurrency(subtotal)}</span>
+            </p>
+            
+            {order?.discount && discountCodeValue > 0 && (
+              <p className="flex justify-between text-green-600">
+                <span>Mã giảm giá {order.discount.code}</span>
+                <span className="font-medium">- {formatCurrency(discountCodeValue)}</span>
+              </p>
+            )}
+            
+            {order?.loyalty_points_used > 0 && (
+              <p className="flex justify-between text-green-600">
+                <span>Điểm sử dụng ({order.loyalty_points_used})</span>
+                <span className="font-medium">- {formatCurrency(pointsValue)}</span>
+              </p>
+            )}
+
+            <p className="flex justify-between border-t pt-2 font-bold text-base text-gray-900">
+              <span>Tổng thanh toán:</span>
+              <span>{formatCurrency(totalPaid)}</span>
+            </p>
+            
+            {/* Loyalty Earned */}
+            {order?.loyalty_points_earned > 0 && (
+              <p className="flex justify-end pt-1 text-xs text-indigo-600 bg-indigo-50 p-2 rounded-md">
+                 <Gift size={14} className="mr-1" />
+                 Đã nhận được {order.loyalty_points_earned} điểm thành viên.
+              </p>
+            )}
+
+          </div>
         </div>
 
         <button
@@ -72,6 +127,7 @@ const OrderDetailsModal = ({ order, onClose, formatCurrency }) => {
     </div>
   );
 };
+
 
 const OrderManager = () => {
   const navigate = useNavigate();
@@ -122,6 +178,11 @@ const OrderManager = () => {
                 paymentMethod: order.payment_method,
                 paymentStatus: order.payment_status,
                 status: order.status,
+                // 🔽 New Fields from Model 🔽
+                loyalty_points_used: order.loyalty_points_used,
+                loyalty_points_earned: order.loyalty_points_earned,
+                discount: order.discount_code_id, // Keeping 'discount' as ID
+                total_price: order.total_price // Keep original total price
               };
             } catch (itemError) {
               console.error(
@@ -155,7 +216,7 @@ const OrderManager = () => {
     e.stopPropagation();
     try {
       const res = await axiosClient.put(`/orders/${id}`, {
-        status: "Đã hủy",
+        status: "cancelled", // Corrected status to match ENUM
       });
       setOrders(
         orders.map((order) =>
@@ -164,7 +225,7 @@ const OrderManager = () => {
       );
     } catch (err) {
       console.error("Lỗi khi hủy đơn hàng:", err);
-      alert("Hủy đơn hàng thất bại.");
+      alert(err.response?.data?.message || "Hủy đơn hàng thất bại.");
     }
   };
 
@@ -180,7 +241,6 @@ const OrderManager = () => {
     }
   };
 
-  // --- Modal Handlers ---
   const handleOpenModal = (order) => {
     setSelectedOrder(order);
   };
@@ -190,7 +250,6 @@ const OrderManager = () => {
   };
 
   // --- Helper Functions ---
-
   const calculateTotal = (products) => {
     return products.reduce(
       (total, product) => total + product.price * product.quantity,
@@ -314,11 +373,36 @@ const OrderManager = () => {
                     <span>Không có thông tin sản phẩm</span>
                   )}
                 </p>
+                
                 <p className="text-gray-600 font-medium mt-2">
-                  Tổng tiền: {formatCurrency(calculateTotal(order.products))}
+                  Tổng tiền: {formatCurrency(order.total_price)} 
                 </p>
+                
+                {/* 🔽 DISPLAY NEW FIELDS 🔽 */}
+                {(order.loyalty_points_used > 0 || order.discount) && (
+                    <div className="text-xs mt-1 text-gray-700 space-y-0.5">
+                        {order.discount && (
+                            <p className="flex items-center gap-1 text-green-600">
+                                <Tag size={12} />
+                                Đã dùng mã giảm giá.
+                            </p>
+                        )}
+                        {order.loyalty_points_used > 0 && (
+                            <p className="flex items-center gap-1 text-amber-600">
+                                <Coins size={12} />
+                                Giảm giá bằng điểm: {order.loyalty_points_used} điểm
+                            </p>
+                        )}
+                    </div>
+                )}
+                {order.loyalty_points_earned > 0 && (
+                     <p className="text-xs mt-1 text-indigo-600">
+                        + {order.loyalty_points_earned} điểm thưởng
+                    </p>
+                )}
+                {/* 🔼 END DISPLAY NEW FIELDS 🔼 */}
 
-                <p className="text-gray-600">
+                <p className="text-gray-600 mt-2">
                   Địa chỉ: {formatAddress(order.address)}
                 </p>
 
@@ -368,7 +452,6 @@ const OrderManager = () => {
             disabled={currentPage === 1 || loading}
             className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {/* <ChevronLeftIcon className="h-5 w-5" /> */}
             Trang trước
           </button>
 
@@ -382,7 +465,6 @@ const OrderManager = () => {
             className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Trang sau
-            {/* <ChevronRightIcon className="h-5 w-5" /> */}
           </button>
         </div>
       )}

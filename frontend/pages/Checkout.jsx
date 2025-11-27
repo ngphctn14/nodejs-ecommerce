@@ -477,7 +477,7 @@ const Checkout = () => {
               </div>
               {selectedDiscount && (
                  <p className="text-xs text-green-600 mt-1">
-                    Đã áp dụng mã {selectedDiscount.code}: Giảm {selectedDiscount.discountPercent}% 
+                    Đã áp dụng mã {selectedDiscount.code}: Giảm {selectedDiscount.discount_value}% 
                     {selectedDiscount.maxDiscountAmount ? ` (Tối đa ${selectedDiscount.maxDiscountAmount.toLocaleString()}đ)` : ""}
                  </p>
               )}
