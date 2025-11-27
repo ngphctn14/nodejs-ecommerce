@@ -67,7 +67,9 @@ export const createOrder = async (req, res) => {
 
     const user = await User.findById(order.user_id);
 
-    await sendOrderSuccessEmail(user, order);
+    if (order.payment_method === "cash") {
+      await sendOrderSuccessEmail(user, order);
+    }
 
     await order.save();
     res.status(201).json(order);

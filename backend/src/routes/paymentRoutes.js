@@ -83,12 +83,15 @@ router.get("/vnpay-return", (req, res) => {
   } catch (error) {
     return res.send("Dữ liệu không hợp lệ");
   }
-  return res.redirect(`${process.env.CLIENT_URL}/order-success/${verify.vnp_TxnRef}`);
+  return res.redirect(
+    `${process.env.CLIENT_URL}/order-success/${verify.vnp_TxnRef}`
+  );
 });
 
 router.get("/vnpay-ipn", async (req, res) => {
   try {
     const verify = vnpay.verifyReturnUrl(req.query);
+    console.log(verify);
 
     if (!verify.isVerified) {
       return res.json(IpnFailChecksum);
@@ -122,14 +125,8 @@ router.get("/vnpay-ipn", async (req, res) => {
       console.error("IPN: Lỗi khi xóa giỏ hàng:", cartError);
     }
 
-    order.payment_status = "paid";
-    order.status = "confirmed";
-
-    await order.updateStatus(order.status);
-
+    await order.updateStatus("confirmed");
     const user = await User.findById(order.user_id);
-
-    await order.save();
 
     await sendOrderSuccessEmail(user, order);
 
