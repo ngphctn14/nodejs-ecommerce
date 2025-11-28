@@ -1,13 +1,13 @@
 import React from 'react';
-import { Link } from 'react-router-dom'; // Thêm import này
+import { Link } from 'react-router-dom';
 
 const ProductBox = ({ 
   name, 
   price, 
   oldPrice, 
-  discountPercent, // sửa tên từ salePercent → discountPercent cho đúng với ProductsList
+  discountPercent,
   imageUrl,
-  _id // Nhận thêm _id từ props
+  _id
 }) => {
   const parsedSalePercent = Number(discountPercent || 0);
   const isOnSale = parsedSalePercent > 0 && oldPrice && oldPrice > price;
@@ -23,31 +23,45 @@ const ProductBox = ({
   return (
     <Link 
       to={`/product/${_id}`} 
-      className="block bg-white rounded-lg shadow-md overflow-hidden w-64 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+      className="block bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 w-full"
     >
-      <div className="relative">
-        <img src={imageUrl} alt={name} className="w-full h-48 object-cover" />
+      {/* Image Container với aspect ratio cố định */}
+      <div className="relative w-full pt-[125%]">
+        <img 
+          src={imageUrl} 
+          alt={name} 
+          className="absolute inset-0 w-full h-full object-cover"
+        />
         {displaySalePercent && (
-          <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+          <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded shadow-md">
             -{displaySalePercent}%
           </span>
         )}
       </div>
-      <div className="p-4">
-        <h3 className="text-lg font-semibold text-gray-800 truncate">{name}</h3>
-        <div className="mt-2 flex items-center gap-2">
-          <span className="text-xl font-bold text-gray-900">
+
+      {/* Product Info */}
+      <div className="p-3 sm:p-4">
+        <h3 className="text-sm sm:text-base font-semibold text-gray-800 line-clamp-2 min-h-[2.5rem] sm:min-h-[3rem]">
+          {name}
+        </h3>
+        
+        <div className="mt-2 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+          <span className="text-base sm:text-lg font-bold text-gray-900">
             {formatPrice(price)} ₫
           </span>
           {displayOldPrice && (
-            <span className="text-sm text-gray-500 line-through">
+            <span className="text-xs sm:text-sm text-gray-500 line-through">
               {formatPrice(displayOldPrice)} ₫
             </span>
           )}
         </div>
+
         <button 
-          onClick={(e) => e.preventDefault()} // Ngăn nút submit khi click
-          className="mt-4 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors duration-200 pointer-events-none"
+          onClick={(e) => {
+            e.preventDefault();
+            window.location.href = `/product/${_id}`;
+          }}
+          className="mt-3 sm:mt-4 w-full bg-blue-600 text-white py-2 sm:py-2.5 text-sm sm:text-base rounded hover:bg-blue-700 transition-colors duration-200 font-medium"
         >
           Xem chi tiết
         </button>
