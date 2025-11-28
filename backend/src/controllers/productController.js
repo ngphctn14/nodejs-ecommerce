@@ -3,6 +3,8 @@ import Brand from "../models/brandModel.js";
 import Category from "../models/categoryModel.js";
 import ProductVariant from "../models/productVariantModel.js";
 
+import {esClient} from "../elastic/esClient.js";
+
 import mongoose from "mongoose";
 
 export const getProductFilters = async (req, res) => {
@@ -446,3 +448,114 @@ export const deleteProduct = async (req, res) => {
   }
 };
 
+export const searchProducts = async (req, res) => {
+  try {
+    const { q, sort } = req.query;
+    if (!q) return res.status(400).json({ message: "Query parameter 'q' is required" });
+
+    let sortStage = {};
+    switch (sort) {
+      case "price_asc":
+        sortStage = { price: 1 };
+        break;
+      case "price_desc":
+        sortStage = { price: -1 };
+        break;
+      case "name_asc":
+        sortStage = { name: 1 };
+        break;
+      case "name_desc":
+        sortStage = { name: -1 };
+        break;
+      default:
+        sortStage = { createdAt: -1 };
+    }
+
+    // Search ES for matching product IDs
+    const esResult = await esClient.search({
+      index: "products",
+      query: {
+        multi_match: {
+          query: q,
+          fields: ["name", "description"],
+          fuzziness: "AUTO",
+        },
+      },
+      size: 50
+    });
+
+    const productIds = esResult.hits.hits.map(hit => hit._id);
+    if (!productIds.length) return res.json([]);
+
+    const matchStage = { _id: { $in: productIds.map(id => new mongoose.Types.ObjectId(id)) } };
+
+    const products = await Product.aggregate([
+      { $match: matchStage },
+
+      {
+        $lookup: {
+          from: "productimages",
+          localField: "_id",
+          foreignField: "productId",
+          as: "images",
+        },
+      },
+
+      {
+        $addFields: {
+          imageUrl: { $arrayElemAt: ["$images.url", 0] },
+        },
+      },
+
+      {
+        $lookup: {
+          from: "productvariants",
+          localField: "_id",
+          foreignField: "productId",
+          as: "variants",
+        },
+      },
+
+      {
+        $lookup: {
+          from: "categories",
+          localField: "categoryId",
+          foreignField: "_id",
+          as: "categoryDoc"
+        }
+      },
+      { $unwind: { path: "$categoryDoc", preserveNullAndEmptyArrays: true } },
+
+      {
+        $lookup: {
+          from: "brands",
+          localField: "brandId",
+          foreignField: "_id",
+          as: "brandDoc"
+        }
+      },
+      { $unwind: { path: "$brandDoc", preserveNullAndEmptyArrays: true } },
+
+      {
+        $project: {
+          images: 0,
+          "categoryDoc._id": 0,
+          "brandDoc._id": 0,
+        },
+      },
+
+      { $sort: sortStage }
+    ]);
+
+    // Preserve ES order
+    const productsMap = {};
+    products.forEach(p => { productsMap[p._id.toString()] = p; });
+    const sortedProducts = productIds.map(id => productsMap[id]).filter(Boolean);
+
+    res.json(sortedProducts);
+
+  } catch (err) {
+    console.error("[Search Error]", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

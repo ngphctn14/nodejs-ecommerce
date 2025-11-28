@@ -28,6 +28,9 @@ import dashboardRoutes from './routes/dashboardRoutes.js'
 import connectDB from "./config/db.js";
 import passport from "./config/passport.js";
 
+import { createProductsIndex } from "./elastic/esIndex.js";
+import { syncAllProducts, startMongoToEsSync } from "./elastic/mongoToEsSync.js";
+
 dotenv.config();
 
 const app = express();
@@ -69,7 +72,14 @@ app.use("/api/reviews", reviewRoutes);
 
 app.use("/api/payments/vnpay", paymentRoutes);
 
-connectDB().then(() => {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-});
+connectDB().then(async () => {
+  console.log("MongoDB connected");
+
+  await createProductsIndex();
+  await syncAllProducts();
+  startMongoToEsSync();
+})
+.catch((err) => console.error(err));
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
