@@ -69,7 +69,7 @@ const Navbar = () => {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      window.location.href = `/search?name=${encodeURIComponent(searchQuery)}`;
+      window.location.href = `/search?q=${encodeURIComponent(searchQuery)}`;
     }
   };
 

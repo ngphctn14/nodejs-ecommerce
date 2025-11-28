@@ -17,6 +17,7 @@ import PaymentFailed from "../pages/PaymentFailed";
 import OrderSuccess from "../pages/OrderSuccess";
 import ProductDetailPage from "../pages/Products/ProductDetailPage"; 
 import ResetPassword from "../pages/ResetPassword";
+import SearchPage from "../pages/Search";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/products" element={<Products />} />
+        <Route path="/search" element={<SearchPage />} />
         <Route path="/product/:id" element={<ProductDetailPage />} />
 
         <Route path="/categories/:slug" element={<CategoryPage />} />
@@ -42,6 +44,7 @@ function App() {
         <Route path="/order-success/:orderId" element={<OrderSuccess />} />
 
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+
 
         <Route path="*" element={<Error />} />
       </Routes>

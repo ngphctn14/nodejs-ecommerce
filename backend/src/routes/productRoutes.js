@@ -7,13 +7,16 @@ import {
   deleteProduct,
   getProductsByBrand,
   getProductsByCategory,
-  getProductFilters
+  getProductFilters,
+  searchProducts
 } from "../controllers/productController.js";
 
 import { getProductVariantsByProductId } from "../controllers/productVariantController.js";
 import { getProductImagesByProductId } from "../controllers/productImageController.js";
 
 const router = express.Router();
+
+router.get("/search", searchProducts);
 
 router.get("/", getProducts);
 router.get("/filters", getProductFilters);
