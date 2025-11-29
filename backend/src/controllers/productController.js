@@ -559,3 +559,117 @@ export const searchProducts = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const getFeaturedProducts = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 16;
+
+    const products = await Product.aggregate([
+      { $sort: { sales: -1 } }, 
+      
+      { $limit: limit },
+
+      {
+        $lookup: {
+          from: "productimages",
+          localField: "_id",
+          foreignField: "productId",
+          as: "images",
+        },
+      },
+
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          oldPrice: "$basePrice", 
+          salePercent: "$discountPercent",
+          imageUrl: { $arrayElemAt: ["$images.url", 0] },
+          price: {
+            $round: [
+              {
+                $multiply: [
+                  "$basePrice",
+                  { $subtract: [1, { $divide: ["$discountPercent", 100] }] },
+                ],
+              },
+              0, 
+            ],
+          },
+        },
+      },
+    ]);
+
+    const formattedProducts = products.map((product) => ({
+      id: product._id,
+      name: product.name,
+      price: product.price,
+      oldPrice: product.oldPrice,
+      salePercent: product.salePercent,
+      imageUrl: product.imageUrl || "/default-product.png", 
+    }));
+
+    res.json(formattedProducts);
+  } catch (error) {
+    console.error("Lỗi lấy sản phẩm nổi bật:", error);
+    res.status(500).json({ message: "Lỗi server khi lấy sản phẩm bán chạy" });
+  }
+};
+
+export const getMostDiscountProduct = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 16;
+
+    const products = await Product.aggregate([
+      { $match: { discountPercent: { $gt: 0 } } },
+
+      { $sort: { discountPercent: -1 } },
+
+      { $limit: limit },
+
+      {
+        $lookup: {
+          from: "productimages",
+          localField: "_id",
+          foreignField: "productId",
+          as: "images",
+        },
+      },
+
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          oldPrice: "$basePrice", 
+          salePercent: "$discountPercent", 
+          imageUrl: { $arrayElemAt: ["$images.url", 0] }, 
+          price: {
+            $round: [
+              {
+                $multiply: [
+                  "$basePrice",
+                  { $subtract: [1, { $divide: ["$discountPercent", 100] }] },
+                ],
+              },
+              0, 
+            ],
+          },
+        },
+      },
+    ]);
+
+    const formattedProducts = products.map((product) => ({
+      id: product._id,
+      name: product.name,
+      price: product.price,       
+      oldPrice: product.oldPrice, 
+      salePercent: product.salePercent,
+      imageUrl: product.imageUrl || "/default-product.png",
+    }));
+
+    res.json(formattedProducts);
+  } catch (error) {
+    console.error("Lỗi lấy sản phẩm giảm giá nhiều nhất:", error);
+    res.status(500).json({ message: "Lỗi server khi lấy sản phẩm giảm giá" });
+  }
+};

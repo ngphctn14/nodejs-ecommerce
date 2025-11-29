@@ -274,6 +274,7 @@ const ProductsList = ({ products = [], minPrice = 0, maxPrice = 50000000, isBran
       </div>
     </div>
   );
+  console.log(products)
 
   return (
     <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
@@ -386,17 +387,27 @@ const ProductsList = ({ products = [], minPrice = 0, maxPrice = 50000000, isBran
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-              {currentProducts.map((product) => (
-                <ProductBox
-                  key={product._id}
-                  _id={product._id}
-                  name={product.name}
-                  price={product.basePrice}
-                  oldPrice={product.oldPrice || product.basePrice}
-                  discountPercent={product.discountPercent || 0}
-                  imageUrl={product.imageUrl || "https://via.placeholder.com/300x400?text=Product"} 
-                />
-              ))}
+              {currentProducts.map((product) => {
+                const percent = product.discountPercent || 0;
+                const hasDiscount = percent > 0;
+
+                // Nếu có giảm giá thì tính giá sau giảm, còn không thì dùng basePrice luôn
+                const finalPrice = hasDiscount
+                  ? Math.round(product.basePrice * (1 - percent / 100))
+                  : product.basePrice;
+
+                return (
+                  <ProductBox
+                    key={product._id}
+                    _id={product._id}
+                    name={product.name}
+                    price={finalPrice}                            
+                    oldPrice={hasDiscount ? product.basePrice : null} 
+                    salePercent={percent}
+                    imageUrl={product.imageUrl || "https://via.placeholder.com/300x400?text=Product"}
+                  />
+                );
+              })}
             </div>
           )}
 
