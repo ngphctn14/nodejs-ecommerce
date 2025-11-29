@@ -3,12 +3,16 @@ import Footer from "../components/Shared/Footer";
 import Button from "../components/Forms/Button"; // Assuming you have this
 import { useNavigate } from "react-router-dom";
 import { XCircleIcon } from "@heroicons/react/24/solid"; // Using heroicons for a nice icon
+import { Helmet } from "react-helmet";
 
 const PaymentFailed = () => {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      <Helmet>
+        <title>{`Thanh toán thất bại`}</title>
+      </Helmet>
       <Navbar />
 
       <main className="flex flex-1 items-center justify-center text-center px-6">

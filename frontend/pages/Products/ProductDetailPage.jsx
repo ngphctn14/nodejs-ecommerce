@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import ProductInfo from "../../components/Products/ProductInfo";
-import ProductReviews from "./ProductReviews";
+import ProductReviews from "../../components/Products/ProductReviews";
 import Navbar from "../../components/Shared/Navbar";
 import Footer from "../../components/Shared/Footer";
 import axiosClient from "../../api/axiosClient";
 import { useParams } from "react-router-dom";
+import {Helmet} from "react-helmet";
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -47,6 +48,9 @@ useEffect(() => {
   return (
     <>
       {/* Navbar cố định */}
+      <Helmet>
+        <title>{`Sản phẩm | ${product?.name}`}</title>
+      </Helmet>
       <Navbar />
 
       <div className="min-h-screen bg-gray-50">

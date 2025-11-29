@@ -136,12 +136,6 @@ const Navbar = () => {
               </div>
             </div>
 
-            <a
-              href="/advanced-search"
-              className="text-gray-700 hover:text-gray-900 font-medium"
-            >
-              Tìm kiếm nâng cao
-            </a>
           </div>
 
           {/* Logo - Center */}
@@ -310,13 +304,6 @@ const Navbar = () => {
                   </div>
                 )}
               </div>
-
-              <a
-                href="/advanced-search"
-                className="block px-3 py-2.5 text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-medium rounded-md"
-              >
-                Tìm kiếm nâng cao
-              </a>
 
               {/* Mobile user menu */}
               {isLoggedIn ? (

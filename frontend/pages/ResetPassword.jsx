@@ -5,6 +5,7 @@ import Footer from "../components/Shared/Footer";
 import Button from "../components/Forms/Button";
 import axiosClient from "../api/axiosClient";
 import { LockClosedIcon } from "@heroicons/react/24/solid";
+import { Helmet } from "react-helmet";
 
 const ResetPassword = () => {
   const { token } = useParams();
@@ -46,6 +47,9 @@ const ResetPassword = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      <Helmet>
+        <title>{`Đặt lại mật khẩu`}</title>
+      </Helmet>
       <Navbar />
       <main className="flex flex-1 items-center justify-center px-6 py-12">
         <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">

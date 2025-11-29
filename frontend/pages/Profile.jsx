@@ -3,12 +3,16 @@ import Navbar from "../components/Shared/Navbar";
 import Footer from "../components/Shared/Footer";
 import ProfileForm from "../components/Profile/Profile";
 import AddressManager from "../components/Profile/AddressManager";
+import { Helmet } from "react-helmet";
 
 const Profile = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
+      <Helmet>
+        <title>{`Trang cá nhân`}</title>
+      </Helmet>
 
       <main className="flex-grow flex justify-center items-start mt-20 mb-10 px-4">
         <div className="w-full max-w-5xl flex flex-col items-start lg:flex-row gap-6">

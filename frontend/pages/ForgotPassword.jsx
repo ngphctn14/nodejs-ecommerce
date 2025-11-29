@@ -3,6 +3,7 @@ import Navbar from "../components/Shared/Navbar";
 import Footer from "../components/Shared/Footer";
 import Button from "../components/Forms/Button";
 import axiosClient from "../api/axiosClient";
+import { Helmet } from "react-helmet";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -27,6 +28,9 @@ const ForgotPassword = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
+      <Helmet>
+        <title>{`Quên mật khẩu`}</title>
+      </Helmet>
       <main className="flex flex-1 items-center justify-center px-6">
         <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
           <h1 className="text-2xl font-bold text-gray-800 mb-4 text-center">Quên mật khẩu?</h1>

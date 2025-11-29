@@ -4,6 +4,7 @@ import Navbar from "../components/Shared/Navbar";
 import Footer from "../components/Shared/Footer";
 import ProductList from "../components/Products/ProductsList"; 
 import axiosClient from "../api/axiosClient";
+import { Helmet } from "react-helmet";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -47,8 +48,12 @@ const SearchPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Helmet>
+        <title>{`Tìm kiếm | ${searchTerm}`}</title>
+      </Helmet>
       <Navbar onSearch={handleSearch} />
+      <main className="flex flex-1 items-center justify-center text-center px-6">
       <div className="pt-20 max-w-7xl mx-auto px-4">
         {loading ? (
           <p className="text-center py-10">Đang tải sản phẩm...</p>
@@ -58,6 +63,7 @@ const SearchPage = () => {
           <p className="text-center py-10">Không tìm thấy sản phẩm nào cho "{searchTerm}"</p>
         )}
       </div>
+      </main>
       <Footer />
     </div>
   );

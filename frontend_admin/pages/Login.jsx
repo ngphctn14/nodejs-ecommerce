@@ -1,9 +1,13 @@
 import React from 'react';
 import LoginForm from '../components/LoginForm';
+import { Helmet } from 'react-helmet';
 
 export default function Login() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <Helmet>
+        <title>{`Đăng nhập Admin`}</title>
+      </Helmet>
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white px-8 py-10 shadow-xl rounded-2xl border border-gray-100">
           <div className="text-center mb-8">

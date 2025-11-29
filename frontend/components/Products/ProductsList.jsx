@@ -33,9 +33,29 @@ const ProductsList = ({ products = [], minPrice = 0, maxPrice = 50000000, isBran
       if (product.size) sizes.add(product.size);
     });
 
+    const rawSizes = Array.from(sizes);
+
+    // 1. Filter and Sort Numeric Sizes (38, 39, 40.5, etc.)
+    const numericSizes = rawSizes
+      .filter(s => !isNaN(s) && !isNaN(parseFloat(s))) // Check if it is a number
+      .sort((a, b) => parseFloat(a) - parseFloat(b)); // Numeric sort
+
+    // 2. Filter and Sort Letter Sizes (S, M, L, XL, etc.)
+    const sizeOrder = { 'XXS': 0, 'XS': 1, 'S': 2, 'M': 3, 'L': 4, 'XL': 5, 'XXL': 6, '2XL': 6, '3XL': 7, '4XL': 8 };
+    const letterSizes = rawSizes
+      .filter(s => isNaN(s)) // Check if it is NOT a number
+      .sort((a, b) => {
+        const orderA = sizeOrder[a.toUpperCase()] ?? 99; // Default to 99 if not found
+        const orderB = sizeOrder[b.toUpperCase()] ?? 99;
+        return orderA - orderB;
+      });
+
     return {
       colors: Array.from(colors).sort(),
-      sizes: Array.from(sizes).sort(),
+      numericSizes,
+      letterSizes,
+      // Keep a combined list just in case checks need it, though we use split lists for UI
+      allSizes: rawSizes 
     };
   }, [products]);
 
@@ -156,6 +176,17 @@ const ProductsList = ({ products = [], minPrice = 0, maxPrice = 50000000, isBran
     </label>
   );
 
+  const SizeButton = ({ size }) => (
+    <button
+      onClick={() => setFilters({...filters, size: filters.size === size ? "" : size})}
+      className={`py-2 text-sm border rounded hover:border-blue-500 transition-colors
+        ${filters.size === size ? 'bg-blue-50 border-blue-500 text-blue-700 font-medium' : 'border-gray-200 text-gray-600'}
+      `}
+    >
+      {size}
+    </button>
+  );
+
   // Filter Panel Component
   const FilterPanel = ({ isMobile = false }) => (
     <div className={`space-y-6 ${isMobile ? 'p-4' : ''}`}>
@@ -192,22 +223,38 @@ const ProductsList = ({ products = [], minPrice = 0, maxPrice = 50000000, isBran
         </div>
       </div>
 
-      {/* Size Filter */}
+      {/* Size Filter - Categorized */}
       <div>
         <h3 className="font-semibold text-gray-900 mb-3">Kích thước</h3>
-        <div className="grid grid-cols-3 gap-2">
-          {filterOptions.sizes.length > 0 ? filterOptions.sizes.map(size => (
-            <button
-              key={size}
-              onClick={() => setFilters({...filters, size: filters.size === size ? "" : size})}
-              className={`py-2 text-sm border rounded hover:border-blue-500 transition-colors
-                ${filters.size === size ? 'bg-blue-50 border-blue-500 text-blue-700 font-medium' : 'border-gray-200 text-gray-600'}
-              `}
-            >
-              {size}
-            </button>
-          )) : <p className="text-sm text-gray-400 col-span-3">Không có</p>}
-        </div>
+        
+        {/* Render Numeric Sizes if any */}
+        {filterOptions.numericSizes.length > 0 && (
+          <div className="mb-4">
+            <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">Số</p>
+            <div className="grid grid-cols-3 gap-2">
+              {filterOptions.numericSizes.map(size => (
+                <SizeButton key={`num-${size}`} size={size} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Render Letter Sizes if any */}
+        {filterOptions.letterSizes.length > 0 && (
+          <div>
+            <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">Chữ</p>
+            <div className="grid grid-cols-3 gap-2">
+              {filterOptions.letterSizes.map(size => (
+                <SizeButton key={`let-${size}`} size={size} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Fallback if no sizes exist */}
+        {filterOptions.numericSizes.length === 0 && filterOptions.letterSizes.length === 0 && (
+           <p className="text-sm text-gray-400">Không có</p>
+        )}
       </div>
 
       {/* Color Filter */}
@@ -225,24 +272,6 @@ const ProductsList = ({ products = [], minPrice = 0, maxPrice = 50000000, isBran
           )) : <p className="text-sm text-gray-400">Không có</p>}
         </div>
       </div>
-
-      {/* Brand Filter */}
-      {!isBrand && (
-        <div>
-          <h3 className="font-semibold text-gray-900 mb-3">Hãng</h3>
-          <div className="flex flex-col gap-1">
-            {["Adidas", "Nike", "Puma", "Khác"].map((brand) => (
-              <Checkbox
-                key={brand}
-                id={`${brand}${isMobile ? '-mobile' : ''}`}
-                label={brand}
-                checked={filters.brand === brand}
-                onChange={() => setFilters({ ...filters, brand: filters.brand === brand ? "" : brand })}
-              />
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 

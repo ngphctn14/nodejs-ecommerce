@@ -7,6 +7,7 @@ import PasswordInput from "../components/Forms/PasswordInput";
 import GoogleSigninButton from "../components/Forms/GoogleSigninButton";
 import Button from "../components/Forms/Button";
 import axiosClient from "../api/axiosClient";
+import { Helmet } from "react-helmet";
 
 const Login = () => {
   const { login, user } = useContext(AuthContext);
@@ -60,6 +61,9 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      <Helmet>
+        <title>{`Đăng nhập`}</title>
+      </Helmet>
       <Navbar />
 
       <form

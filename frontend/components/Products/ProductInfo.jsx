@@ -1,7 +1,8 @@
-import React, { useState, useContext } from "react"; // 👈 Thêm useContext
-import { ShoppingCart, Check, Loader2 } from "lucide-react"; // 👈 Thêm Loader2
-import { AuthContext } from "../../context/AuthContext"; // 👈 Thêm AuthContext
-import axiosClient from "../../api/axiosClient"; // 👈 Thêm axiosClient
+import React, { useState, useContext, useMemo } from "react";
+import { ShoppingCart, Check, Loader2 } from "lucide-react";
+import { AuthContext } from "../../context/AuthContext";
+import axiosClient from "../../api/axiosClient";
+import Button from "../Forms/Button";
 
 const ProductInfo = ({ product }) => {
   const {
@@ -26,7 +27,30 @@ const ProductInfo = ({ product }) => {
 
   const { user } = useContext(AuthContext);
 
-  const availableSizes = [...new Set(variants.map((v) => v.size))];
+  // 👇 Calculate and Sort Sizes correctly
+  const availableSizes = useMemo(() => {
+    const uniqueSizes = [...new Set(variants.map((v) => v.size))];
+    const sizeOrder = {
+      XXS: 0, XS: 1, S: 2, M: 3, L: 4, XL: 5,
+      XXL: 6, "2XL": 6, "3XL": 7, "4XL": 8,
+    };
+
+    return uniqueSizes.sort((a, b) => {
+      const numA = parseFloat(a);
+      const numB = parseFloat(b);
+      const isNumA = !isNaN(numA);
+      const isNumB = !isNaN(numB);
+
+      if (isNumA && isNumB) return numA - numB;
+      if (isNumA && !isNumB) return -1;
+      if (!isNumA && isNumB) return 1;
+
+      const orderA = sizeOrder[String(a).toUpperCase()] ?? 99;
+      const orderB = sizeOrder[String(b).toUpperCase()] ?? 99;
+
+      return orderA - orderB;
+    });
+  }, [variants]);
 
   const availableColors = selectedSize
     ? variants
@@ -104,6 +128,7 @@ const ProductInfo = ({ product }) => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        {/* Left Column: Images */}
         <div className="space-y-4">
           <div className="aspect-square overflow-hidden rounded-xl border">
             <img
@@ -138,6 +163,7 @@ const ProductInfo = ({ product }) => {
           )}
         </div>
 
+        {/* Right Column: Details */}
         <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">{name}</h1>
@@ -160,13 +186,13 @@ const ProductInfo = ({ product }) => {
             )}
           </div>
 
-          {/* Mô tả */}
+          {/* Description */}
           <div>
             <h3 className="font-semibold text-gray-800 mb-2">Mô tả sản phẩm</h3>
             <p className="text-gray-600 leading-relaxed">{description}</p>
           </div>
 
-          {/* Chọn Size */}
+          {/* Size Selection */}
           <div>
             <h3 className="font-semibold mb-3">Kích thước</h3>
             <div className="flex gap-3 flex-wrap">
@@ -175,7 +201,7 @@ const ProductInfo = ({ product }) => {
                   key={size}
                   onClick={() => {
                     setSelectedSize(size);
-                    setSelectedColor(""); // Reset màu khi đổi size
+                    setSelectedColor(""); 
                   }}
                   className={`w-16 h-12 rounded-lg border-2 font-medium transition-all
                     ${
@@ -191,7 +217,7 @@ const ProductInfo = ({ product }) => {
             </div>
           </div>
 
-          {/* Chọn Màu */}
+          {/* Color Selection */}
           {selectedSize && (
             <div>
               <h3 className="font-semibold mb-3">
@@ -225,40 +251,39 @@ const ProductInfo = ({ product }) => {
             </div>
           )}
 
-          <button
+          {/* 👇 REPLACED WITH CUSTOM BUTTON COMPONENT */}
+          <Button
             onClick={handleAddToCart}
             disabled={!inStock || addedToCart || isAdding}
-            className={`w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 transition-all
+            className={`w-full py-4 rounded-xl text-lg font-bold shadow-none hover:shadow-none !m-0
               ${
                 addedToCart
-                  ? "bg-green-500 text-white"
+                  ? "!bg-green-400 hover:!bg-green-600"
                   : isAdding
-                  ? "bg-blue-400 text-white cursor-wait"
+                  ? "!bg-blue-400 cursor-wait"
                   : inStock
-                  ? "bg-blue-600 text-white hover:bg-blue-700"
-                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  ? "" // Use default blue from Button component
+                  : "!bg-gray-300 !text-gray-500 cursor-not-allowed hover:!bg-gray-300"
               }
             `}
-          >
-            {addedToCart ? (
-              <>
-                <Check size={24} />
-                Đã thêm vào giỏ hàng!
-              </>
-            ) : isAdding ? (
-              <>
-                <Loader2 size={24} className="animate-spin" />
-                Đang thêm...
-              </>
-            ) : (
-              <>
-                <ShoppingCart size={24} />
-                Thêm vào giỏ hàng
-              </>
-            )}
-          </button>
+            textContent={
+              addedToCart ? (
+                <span className="flex items-center gap-2">
+                  <Check size={24} /> Đã thêm vào giỏ hàng!
+                </span>
+              ) : isAdding ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 size={24} className="animate-spin" /> Đang thêm...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <ShoppingCart size={24} /> Thêm vào giỏ hàng
+                </span>
+              )
+            }
+          />
 
-          {/* Thông báo trạng thái */}
+          {/* Out of Stock Message */}
           {!inStock && selectedSize && selectedColor && (
             <p className="text-red-500 text-center font-medium">
               Sản phẩm size {selectedSize} màu {selectedColor} đã hết hàng!

@@ -5,12 +5,16 @@ import ProductManagerContent from '../components/ProductManagerContent';
 import UserManagementContent from '../components/UserManagementContent';
 import DiscountManagementContent from '../components/DiscountManagementContent';
 import OrderManagementContent from '../components/OrderManagementContent';
+import { Helmet } from 'react-helmet';
 export default function Mainpage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeMenu, setActiveMenu] = useState('dashboard');
 
   return (
     <div className="flex h-screen bg-gray-50">
+      <Helmet>
+        <title>{`Quản lý hệ thống`}</title>
+      </Helmet>
       <Sidebar 
         isOpen={isSidebarOpen} 
         setIsOpen={setIsSidebarOpen} 

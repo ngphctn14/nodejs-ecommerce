@@ -5,6 +5,7 @@ import ProductList from "../../components/Products/ProductsList";
 import ProductsIntroduction from "../../components/Products/ProductsIntroduction";
 import productImage from '/allProducts.jpeg';
 import axiosClient from "../../api/axiosClient";
+import { Helmet } from "react-helmet";
 
 const description = `Chọn mẫu giày đá bóng thích hợp sẽ giúp bạn tư tin hơn khi ra sân. Để biết mẫu giày nào phù hợp với bạn, hãy tham khảo các yếu tố sau: Đế giày (sân cỏ tự nhiên, sân cỏ nhân tạo, futsal), form giày (thon hoặc bè), ngân sách cá nhân. Một đôi giày phù hợp sẽ giúp bạn tăng tốc nhanh, tăng độ bám sân và giảm thiểu rủi ro chấn thương.
 
@@ -35,6 +36,9 @@ const Products = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Helmet>
+        <title>{`Tất cả sản phẩm`}</title>
+      </Helmet>
       <Navbar />
       <div className="pt-20 max-w-7xl mx-auto px-4">
         <ProductsIntroduction

@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import axiosClient from "../api/axiosClient";
 import { Tag, Coins, Gift } from "lucide-react"; // Added Gift icon
+import { Helmet } from "react-helmet";
 
 const POINT_TO_VND_RATE = 10;
 const VND_TO_POINT_RATE = 1000;
@@ -319,6 +320,9 @@ const Checkout = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      <Helmet>
+        <title>{`Thanh toán`}</title>
+      </Helmet>
       <Navbar />
 
       <div className="flex-grow mt-20 p-4 flex flex-col lg:flex-row w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 gap-6">

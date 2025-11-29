@@ -3,6 +3,7 @@ import Footer from "../components/Shared/Footer";
 import Button from "../components/Forms/Button"; // Assuming you have this
 import { useNavigate, useParams } from "react-router-dom";
 import { CheckCircleIcon } from "@heroicons/react/24/solid"; // Using heroicons for a nice icon
+import { Helmet } from "react-helmet";
 
 const OrderSuccess = () => {
   const navigate = useNavigate();
@@ -10,6 +11,9 @@ const OrderSuccess = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      <Helmet>
+        <title>{`Đặt hàng thành công`}</title>
+      </Helmet>
       <Navbar />
 
       <main className="flex flex-1 items-center justify-center text-center px-6">
