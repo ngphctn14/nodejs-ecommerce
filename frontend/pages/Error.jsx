@@ -2,6 +2,7 @@ import Navbar from "../components/Shared/Navbar";
 import Footer from "../components/Shared/Footer";
 import Button from "../components/Forms/Button";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet";
 
 const Error = () => {
   const navigate = useNavigate();
@@ -10,6 +11,9 @@ const Error = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      <Helmet>
+        <title>{`404 Không tìm thấy trang`}</title>
+      </Helmet>
       <Navbar />
 
       <main className="flex flex-1 items-center justify-center text-center px-6">

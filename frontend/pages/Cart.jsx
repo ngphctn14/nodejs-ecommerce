@@ -6,6 +6,7 @@ import Navbar from "../components/Shared/Navbar";
 import CartItem from "../components/Products/CartItem";
 import axiosClient from "../api/axiosClient";
 import { AuthContext } from "../context/AuthContext";
+import { Helmet } from "react-helmet";
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
@@ -131,6 +132,9 @@ const Cart = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
+      <Helmet>
+        <title>{`Giỏ hàng`}</title>
+      </Helmet>
 
       <div className="flex-grow mt-20 p-4 flex flex-col items-center justify-center w-full">
         {cartItems.length === 0 ? (
@@ -145,8 +149,8 @@ const Cart = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 w-full max-w-6xl">
             {/* Cart table */}
-            <div className="col-span-1 md:col-span-3">
-              <table className="w-full border-collapse">
+            <div className="col-span-1 md:col-span-3 overflow-x-auto">
+              <table className="w-full border-collapse min-w-[700px] md:min-w-0">
                 <thead className="border-b border-gray-300 bg-gray-100">
                   <tr>
                     <th className="p-4 text-gray-700 text-left">Sản phẩm</th>

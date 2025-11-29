@@ -7,6 +7,7 @@ import GoogleSigninButton from "../components/Forms/GoogleSigninButton";
 import Button from "../components/Forms/Button";
 import { useContext, useState, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext";
+import { Helmet } from "react-helmet";
 
 const Signup = () => {
   const [fullName, setFullName] = useState("");
@@ -60,6 +61,9 @@ const Signup = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      <Helmet>
+        <title>{`Đăng ký`}</title>
+      </Helmet>
       <Navbar />
 
       <form

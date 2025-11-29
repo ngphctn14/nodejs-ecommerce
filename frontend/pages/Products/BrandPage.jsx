@@ -5,6 +5,7 @@ import Footer from "../../components/Shared/Footer";
 import ProductList from "../../components/Products/ProductsList";
 import ProductsIntroduction from "../../components/Products/ProductsIntroduction";
 import axiosClient from "../../api/axiosClient";
+import {Helmet} from "react-helmet";
 
 const BrandPage = () => {
   const { slug } = useParams();
@@ -23,16 +24,14 @@ const BrandPage = () => {
         console.error("Error fetching brand data:", err);
       }
     };
-
     fetchBrandData();
   }, [slug]);
 
-  // const brandImage = brand
-  //   ? `/brandImage/${brand.slug || slug}.jpg`
-  //   : defaultBrandImage;
-
   return (
     <div className="min-h-screen bg-gray-50">
+      <Helmet>
+        <title>{`Sản phẩm | ${brand?.name}`}</title>
+      </Helmet>
       <Navbar />
       <div className="pt-20 max-w-7xl mx-auto px-4">
         <ProductsIntroduction
@@ -41,7 +40,7 @@ const BrandPage = () => {
             brand?.description ||
             "Khám phá các sản phẩm chính hãng từ thương hiệu này."
           }
-          // image={brandImage}
+          image={brand?.imageSrc}
         />
         <ProductList products={products} isBrand={true} />
       </div>

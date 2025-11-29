@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Select from "react-select";
+// import Select from "react-select"; // Unused in provided code, can be removed if not needed
 import axiosClient from "../../api/axiosClient";
 
 import PhoneNumberField from "../Address/PhoneNumberField";
@@ -7,6 +7,7 @@ import ProvinceSelect from "../Address/ProvinceSelect";
 import WardSelect from "../Address/WardSelect";
 import AddressLineInput from "../Address/AddressLineInput";
 import DefaultCheckbox from "../Address/DefaultCheckbox";
+import Button from "../Forms/Button"; // 👈 Import custom Button
 
 const AddressManager = ({
   prefilledAddress = null,
@@ -45,7 +46,6 @@ const AddressManager = ({
       });
 
     if (showList) {
-      // only fetch addresses when showing the list (Profile page)
       const fetchAddresses = async () => {
         try {
           const response = await axiosClient.get("/addresses");
@@ -73,7 +73,7 @@ const AddressManager = ({
     }
   }, [formData.province, rawAddressData]);
 
-  // ✨ Pre-fill form when editing (in modal or profile)
+  // ✨ Pre-fill form when editing
   useEffect(() => {
     if (prefilledAddress) {
       setFormData({
@@ -98,7 +98,6 @@ const AddressManager = ({
 
   const handleSelectChange = (name) => (selectedOption) => {
     const value = selectedOption ? selectedOption.value : "";
-
     setFormData((prev) => {
       if (name === "province") {
         return {
@@ -107,7 +106,6 @@ const AddressManager = ({
           ward: "",
         };
       }
-
       return {
         ...prev,
         [name]: value,
@@ -123,17 +121,14 @@ const AddressManager = ({
     const payload = { ...formData };
 
     try {
-      let response;
-
       if (isEditing && formData.id) {
-        response = await axiosClient.put(`/addresses/${formData.id}`, payload);
+        await axiosClient.put(`/addresses/${formData.id}`, payload);
       } else {
-        response = await axiosClient.post("/addresses", payload);
+        await axiosClient.post("/addresses", payload);
       }
 
       const updatedList = await axiosClient.get("/addresses");
 
-      // 🔁 Refresh parent (modal close) if callback provided
       if (onClose) {
         onClose(updatedList.data);
       }
@@ -142,15 +137,7 @@ const AddressManager = ({
         setAddresses(updatedList.data);
       }
 
-      setFormData({
-        id: null,
-        phoneNumber: "",
-        province: "",
-        ward: "",
-        addressLine: "",
-        isDefault: false,
-      });
-      setIsEditing(false);
+      handleResetForm();
     } catch (error) {
       console.error("Lỗi khi lưu địa chỉ:", error);
       setError("Không thể lưu địa chỉ. Vui lòng thử lại.");
@@ -170,6 +157,7 @@ const AddressManager = ({
   };
 
   const handleDelete = async (id) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa địa chỉ này?")) return;
     try {
       await axiosClient.delete(`/addresses/${id}`);
       setAddresses((prev) => prev.filter((addr) => addr._id !== id));
@@ -261,21 +249,20 @@ const AddressManager = ({
           onChange={handleInputChange}
         />
 
-        <div className="flex space-x-2">
-          <button
+        <div className="flex flex-wrap">
+          <Button
             type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition"
-          >
-            {isEditing ? "Cập nhật" : "Thêm địa chỉ"}
-          </button>
+            textContent={isEditing ? "Cập nhật" : "Thêm địa chỉ"}
+            className="!mb-0" // Remove bottom margin for alignment
+          />
           {isEditing && (
-            <button
+            <Button
               type="button"
+              textContent="Tạo mới"
               onClick={handleResetForm}
-              className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition"
-            >
-              Tạo mới
-            </button>
+              // Override Blue with Gray
+              className="!bg-gray-500 hover:!bg-gray-600 !mb-0"
+            />
           )}
         </div>
       </form>
@@ -301,18 +288,20 @@ const AddressManager = ({
                   {addr.addressLine}, {addr.ward}, {addr.province}
                 </p>
               </div>
-              <div className="flex space-x-2">
+              <div className="flex flex-col sm:flex-row gap-2">
+                {/* Kept as small text buttons for cleaner UI, 
+                    or could be replaced with small Buttons if preferred */}
                 <button
                   type="button"
                   onClick={() => handleEdit(addr)}
-                  className="text-blue-500 hover:text-blue-700"
+                  className="text-blue-500 hover:text-blue-700 text-sm font-medium"
                 >
                   Sửa
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDelete(addr._id)}
-                  className="text-red-500 hover:text-red-700"
+                  className="text-red-500 hover:text-red-700 text-sm font-medium"
                 >
                   Xóa
                 </button>
@@ -320,7 +309,7 @@ const AddressManager = ({
                   <button
                     type="button"
                     onClick={() => handleSetDefault(addr._id)}
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-gray-500 hover:text-gray-700 text-sm font-medium"
                   >
                     Đặt mặc định
                   </button>

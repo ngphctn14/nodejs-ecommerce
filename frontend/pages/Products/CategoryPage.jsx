@@ -5,6 +5,7 @@ import Footer from "../../components/Shared/Footer";
 import ProductList from "../../components/Products/ProductsList";
 import ProductsIntroduction from "../../components/Products/ProductsIntroduction";
 import axiosClient from "../../api/axiosClient";
+import {Helmet} from "react-helmet";
 
 const CategoryPage = () => {
   const { slug } = useParams();
@@ -29,11 +30,15 @@ const CategoryPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Helmet>
+        <title>{`Sản phẩm | ${category?.name}`}</title>
+      </Helmet>
       <Navbar />
       <div className="pt-20 max-w-7xl mx-auto px-4">
         <ProductsIntroduction
           name={category?.name}
           description={category?.description}
+          image={category?.imageSrc}
         />
         <ProductList products={products} />
       </div>

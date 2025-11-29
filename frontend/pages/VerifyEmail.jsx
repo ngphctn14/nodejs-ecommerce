@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import axios from "axios";
 import Navbar from "../components/Shared/Navbar";
 import Footer from "../components/Shared/Footer";
+import { Helmet } from "react-helmet";
 
 const VerifyEmail = () => {
   const [searchParams] = useSearchParams();
@@ -39,6 +40,9 @@ const VerifyEmail = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      <Helmet>
+        <title>{`Xác nhận email`}</title>
+      </Helmet>
       <Navbar />
 
       <main className="flex flex-1 items-center justify-center text-center px-6">

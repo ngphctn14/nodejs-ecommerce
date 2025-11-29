@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import Button from '../Forms/Button';
 
 const ProductBox = ({ 
   name, 
@@ -56,15 +57,14 @@ const ProductBox = ({
           )}
         </div>
 
-        <button 
+        <Button 
+          textContent="Xem chi tiết"
           onClick={(e) => {
             e.preventDefault();
             window.location.href = `/product/${_id}`;
           }}
-          className="mt-3 sm:mt-4 w-full bg-blue-600 text-white py-2 sm:py-2.5 text-sm sm:text-base rounded hover:bg-blue-700 transition-colors duration-200 font-medium"
-        >
-          Xem chi tiết
-        </button>
+          className="w-full mt-3 sm:mt-4 shadow-none hover:shadow-md transition-shadow" 
+        />
       </div>
     </Link>
   );
