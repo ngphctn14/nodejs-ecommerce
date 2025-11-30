@@ -8,7 +8,9 @@ import {
   getProductsByBrand,
   getProductsByCategory,
   getProductFilters,
-  searchProducts
+  searchProducts, 
+  getFeaturedProducts,
+  getMostDiscountProduct
 } from "../controllers/productController.js";
 
 import { getProductVariantsByProductId } from "../controllers/productVariantController.js";
@@ -20,6 +22,8 @@ router.get("/search", searchProducts);
 
 router.get("/", getProducts);
 router.get("/filters", getProductFilters);
+router.get("/feature", getFeaturedProducts)
+router.get("/discount", getMostDiscountProduct)
 router.get("/:id", getProductDetails);
 router.get("/brand/:slug", getProductsByBrand);
 router.get("/category/:slug", getProductsByCategory);

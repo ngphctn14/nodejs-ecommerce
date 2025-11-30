@@ -1,27 +1,27 @@
 import React from 'react';
 
 const ProductSections = () => {
-  const collections = [
+    const collections = [
     {
-      title: 'Giày sân cỏ nhân tạo',
+      title: 'Giày đá bóng',
       description:
-        'Thiết kế chuyên cho sân cỏ nhân tạo, độ bám tốt, chất liệu bền bỉ, khả năng hỗ trợ di chuyển linh hoạt.',
+        'Đa dạng mẫu mã cho sân cỏ nhân tạo và tự nhiên. Êm ái, bám sân tốt và hỗ trợ bứt tốc tối đa.',
       buttonText: 'Mua ngay',
-      link: 'giay-san-co-nhan-tao',
+      link: '/categories/giay-da-bong',
     },
     {
-      title: 'Giày cỏ tự nhiên',
+      title: 'Áo đá bóng',
       description:
-        'Dành cho sân cỏ tự nhiên với đinh giày chắc chắn, tăng cường độ ma sát và tối ưu khả năng kiểm soát bóng.',
+        'Chất liệu vải mè thái thoáng khí, thấm hút mồ hôi cực tốt. Thiết kế hiện đại, bền màu và chuẩn form.',
       buttonText: 'Mua ngay',
-      link: 'giay-co-tu-nhien',
+      link: '/categories/ao-dau',
     },
     {
       title: 'Các sản phẩm khác',
       description:
-        'Khám phá thêm nhiều phụ kiện và sản phẩm thể thao khác, phù hợp cho nhu cầu tập luyện và thi đấu.',
+        'Trang bị tận răng với tất cả những gì bạn cần để có một trận đấu thật cháy.',
       buttonText: 'Mua ngay',
-      link: 'khac',
+      link: '/products',
     },
   ];
 
@@ -37,7 +37,7 @@ const ProductSections = () => {
               <p className="text-gray-700 mb-4">{collection.description}</p>
 
               <a
-                href={"/products/" + collection.link}
+                href={collection.link}
                 className="inline-block bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900 transition-colors duration-200"
               >
                 {collection.buttonText}
