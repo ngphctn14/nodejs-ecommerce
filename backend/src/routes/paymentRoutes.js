@@ -91,17 +91,20 @@ router.get("/vnpay-return", (req, res) => {
 router.get("/vnpay-ipn", async (req, res) => {
   try {
     const verify = vnpay.verifyReturnUrl(req.query);
-    console.log(verify);
+
+    const order = await Order.findById(verify.vnp_TxnRef);
 
     if (!verify.isVerified) {
       return res.json(IpnFailChecksum);
     }
 
     if (!verify.isSuccess) {
+      if (order) {
+        await order.updateStatus("cancelled");
+        console.log(`IPN: Order ${order._id} cancelled due to failed payment.`);
+      }
       return res.json(IpnUnknownError);
     }
-
-    const order = await Order.findById(verify.vnp_TxnRef);
 
     if (!order) {
       return res.json(IpnOrderNotFound);
@@ -119,10 +122,10 @@ router.get("/vnpay-ipn", async (req, res) => {
       const cart = await Cart.findOne({ userId: order.user_id });
       if (cart) {
         await CartItem.deleteMany({ cart_id: cart._id });
-        console.log(`IPN: Đã xóa giỏ hàng cho user ${order.user_id}.`);
+        console.log(`IPN: Cart cleared for user ${order.user_id}.`);
       }
     } catch (cartError) {
-      console.error("IPN: Lỗi khi xóa giỏ hàng:", cartError);
+      console.error("IPN: Error clearing cart:", cartError);
     }
 
     await order.updateStatus("confirmed");
